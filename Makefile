@@ -1,6 +1,7 @@
 LOCAL_BIN := $(CURDIR)/bin
 export PATH := $(LOCAL_BIN):$(PATH)
-
+include .env
+export
 .PHONY: install-deps generate generate-auth
 
 install-deps:
@@ -36,6 +37,6 @@ copy-to-server:
 	scp auth_linux root@87.228.114.237:
 
 docker-build-and-push:
-	docker buildx build -f deploy/Dockerfile --no-cache --platform linux/amd64 -t cr.selcloud.ru/en7ka/test-server:v0.0.1 .
-	docker login -u token -p CRgAAAAAbbNQ4itSfHsX2Bv2HS3u9-osolBa8NMh cr.selcloud.ru/en7ka
-	docker push cr.selcloud.ru/en7ka/test-server:v0.0.1
+	docker buildx build -f deploy/Dockerfile --no-cache --platform linux/amd64 -t $(SELCLOUD_REGISTRY)/test-server:v0.0.1 .
+	docker login -u $(SELCLOUD_USERNAME) -p $(SELCLOUD_TOKEN) $(SELCLOUD_REGISTRY)
+	docker push $(SELCLOUD_REGISTRY)/test-server:v0.0.1
