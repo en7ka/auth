@@ -3,61 +3,49 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net"
-
 	"github.com/brianvoe/gofakeit"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"log"
+	"net"
 
-	desc "github.com/en7ka/auth/pkg/auth_v1"
+	desc "github.com/en7ka/auth/pkg/user_v1"
 )
 
 const grpcPort = 50051
 
 type server struct {
-	desc.UnimplementedAuthV1Server
+	desc.UnimplementedUserAPIServer
 }
 
 func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
 	log.Printf("Note id: %d", req.GetId())
-
+	role := desc.Role_user
+	if gofakeit.Bool() {
+		role = desc.Role_admin
+	}
 	return &desc.GetResponse{
-		Note: &desc.UserGet{
-			Id: req.GetId(),
-			Info: &desc.UserInfo{
-				Name:  gofakeit.Name(),
-				Email: gofakeit.Email(),
-			},
-			CreatedAt: timestamppb.New(gofakeit.Date()),
-			UpdatedAt: timestamppb.New(gofakeit.Date()),
-		},
+		Id:        req.GetId(),
+		Name:      gofakeit.Name(),
+		Email:     gofakeit.Email(),
+		Role:      role,
+		CreatedAt: timestamppb.New(gofakeit.Date()),
+		UpdatedAt: timestamppb.Now(),
 	}, nil
 }
 
-func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateRequest, error) {
-	log.Printf("Note id: %d", req.GetId())
-
-	return &desc.CreateRequest{
-		Note: &desc.UserGet{
-			Id:        req.GetId(),
-			Info:      req.GetUserInfo(),
-			CreatedAt: timestamppb.New(gofakeit.Date()),
-			UpdatedAt: timestamppb.New(gofakeit.Date()),
-		},
-	}, nil
+func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
+	return &desc.CreateResponse{Id: gofakeit.Int64()}, nil
 }
 
-func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*desc.UpdateRequest, error) {
-	log.Printf("Updated note with id: %d", req.GetId())
-
-	return &desc.UpdateResponse{Id: req.GetId()}, nil
+func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
-func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*desc.DeleteRequest, error) {
-	log.Printf("Deleted note with id: %d", req.GetId())
-	return &desc.DeleteResponse{Id: req.GetId()}, nil
+func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 func main() {
@@ -68,7 +56,7 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterAuthV1Server(s, &server{})
+	desc.RegisterUserAPIServer(s, &server{})
 
 	log.Printf("server listening at %v", lis.Addr())
 
