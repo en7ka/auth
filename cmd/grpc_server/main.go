@@ -3,64 +3,128 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/brianvoe/gofakeit"
+	"log"
+	"net"
+	"path/filepath"
+	"runtime"
+	"time"
+
+	"github.com/joho/godotenv"
+
+	dao "github.com/en7ka/auth/deploy/postgres/cmd"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"log"
-	"net"
 
 	desc "github.com/en7ka/auth/pkg/user_v1"
 )
 
 const grpcPort = 50051
 
-type server struct {
-	desc.UnimplementedUserAPIServer
-}
-
-func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	log.Printf("Note id: %d", req.GetId())
-	role := desc.Role_user
-	if gofakeit.Bool() {
-		role = desc.Role_admin
-	}
-	return &desc.GetResponse{
-		Id:        req.GetId(),
-		Name:      gofakeit.Name(),
-		Email:     gofakeit.Email(),
-		Role:      role,
-		CreatedAt: timestamppb.New(gofakeit.Date()),
-		UpdatedAt: timestamppb.Now(),
-	}, nil
-}
-
-func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	return &desc.CreateResponse{Id: gofakeit.Int64()}, nil
-}
-
-func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, nil
-}
-
-func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, nil
-}
-
 func main() {
+	// Получаем абсолютный путь к текущему файлу
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+
+	// Строим абсолютный путь к файлу .env
+	envPath := filepath.Join(basepath, "../../deploy/.env")
+
+	// Загружаем .env
+	err := godotenv.Load(envPath)
+	if err != nil {
+		log.Fatalf("Ошибка загрузки файла .env: %v", err)
+	}
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal("failed to listen: 50051 ")
 	}
+
+	storage, err := dao.InitStorage()
+	if err != nil {
+		log.Fatal("failed to init storage")
+	}
+	defer storage.CloseCon()
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterUserAPIServer(s, &server{})
+	desc.RegisterUserAPIServer(s, &server{storage: storage})
 
 	log.Printf("server listening at %v", lis.Addr())
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+type server struct {
+	desc.UnimplementedUserAPIServer
+	storage dao.PostgresInterface
+}
+
+func toTimestampProto(t time.Time) *timestamppb.Timestamp {
+	return timestamppb.New(t)
+}
+
+func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+
+	params := dao.GetUserPar{ID: &req.Id}
+
+	userProfile, err := s.storage.GetUser(params)
+	if err != nil {
+		return nil, fmt.Errorf("error when getting the user profile: %w", err)
+	}
+
+	response := &desc.GetResponse{
+		Id:        userProfile.ID,
+		Name:      userProfile.Username,
+		Email:     userProfile.Email,
+		Role:      userProfile.Role,
+		CreatedAt: toTimestampProto(userProfile.CreatedAt),
+		UpdatedAt: toTimestampProto(userProfile.UpdatedAt),
+	}
+
+	return response, nil
+}
+
+func (s *server) Create(_ context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
+
+	user := dao.User{
+		Username: req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+		Role:     desc.Role_user,
+	}
+
+	id, err := s.storage.Save(user)
+	if err != nil {
+		return nil, fmt.Errorf("error when saving the user: %w", err)
+	}
+
+	return &desc.CreateResponse{Id: id}, nil
+}
+
+func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
+
+	updateUser := dao.UpdateUser{
+		ID:       req.GetId(),
+		Username: req.GetName().GetValue(),
+		Email:    req.GetEmail().GetValue(),
+	}
+	if err := s.storage.Update(updateUser); err != nil {
+		return &emptypb.Empty{}, fmt.Errorf("error updating user: %w", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *server) Delete(_ context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
+	idDel := dao.DeleteID(req.GetId())
+	if err := s.storage.Delete(idDel); err != nil {
+		return &emptypb.Empty{}, fmt.Errorf("error deleting user: %w", err)
+	}
+
+	return &emptypb.Empty{}, nil
 }
