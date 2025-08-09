@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Ошибка загрузки файла .env: %v", err)
 	}
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatal("failed to listen: 50051 ")
@@ -53,7 +54,7 @@ func main() {
 
 	log.Printf("server listening at %v", lis.Addr())
 
-	if err = s.Serve(lis); err != nil {
+	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
@@ -68,7 +69,7 @@ func toTimestampProto(t time.Time) *timestamppb.Timestamp {
 }
 
 func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	// В вашем proto файле GetRequest имеет только поле id.
+
 	params := dao.GetUserPar{ID: &req.Id}
 
 	userProfile, err := s.storage.GetUser(params)
@@ -76,7 +77,6 @@ func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse
 		return nil, fmt.Errorf("error when getting the user profile: %w", err)
 	}
 
-	// Заполнение полей из userProfile в GetResponse
 	response := &desc.GetResponse{
 		Id:        userProfile.ID,
 		Name:      userProfile.Username,
@@ -90,23 +90,24 @@ func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse
 }
 
 func (s *server) Create(_ context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	// В вашем proto файле CreateRequest не имеет вложенной User
+
 	user := dao.User{
 		Username: req.Name,
 		Email:    req.Email,
 		Password: req.Password,
-		Role:     desc.Role_user, // Предполагаем, что при создании роль всегда 'user'
+		Role:     desc.Role_user,
 	}
 
 	id, err := s.storage.Save(user)
 	if err != nil {
 		return nil, fmt.Errorf("error when saving the user: %w", err)
 	}
+
 	return &desc.CreateResponse{Id: id}, nil
 }
 
 func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
-	// В вашем proto файле поля Name и Email - это StringValue
+
 	updateUser := dao.UpdateUser{
 		ID:       req.GetId(),
 		Username: req.GetName().GetValue(),
@@ -116,6 +117,7 @@ func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Em
 	if err != nil {
 		return &emptypb.Empty{}, fmt.Errorf("error updating user: %w", err)
 	}
+
 	return &emptypb.Empty{}, nil
 }
 

@@ -70,6 +70,7 @@ func (s *Storage) Update(update UpdateUser) error {
 	res, err := s.con.Exec(s.ctx, "UPDATE users SET username = $1, email = $2 WHERE id = $3", update.Username, update.Email, update.ID)
 	if err != nil {
 		log.Printf("Error updating user into database: %v", err)
+		return err
 	}
 	log.Printf("Updated user into database: %d", res.RowsAffected())
 	return nil
@@ -80,6 +81,7 @@ func (s *Storage) Delete(id DeleteID) error {
 	res, err := s.con.Exec(s.ctx, "DELETE FROM users WHERE id = $1", id)
 	if err != nil {
 		log.Printf("Error deleting user into database: %v", err)
+		return err
 	}
 	log.Printf("Deleted user into database: %d", res.RowsAffected())
 	return nil
@@ -97,16 +99,17 @@ func (s *Storage) GetUser(params GetUserPar) (*User, error) {
 	case params.Username != nil:
 		query = query.Where(sq.Eq{"username": *params.Username})
 	default:
-		return nil, fmt.Errorf("no users and no username")
+		return nil, fmt.Errorf("no username provided")
 	}
 	dbQuery, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
+
 	row := s.con.QueryRow(s.ctx, dbQuery, args...)
-	err = row.Scan(&user.ID, &user.Username, &user.Email, &user.Role, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
+	if err := row.Scan(&user.ID, &user.Username, &user.Email, &user.Role); err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
