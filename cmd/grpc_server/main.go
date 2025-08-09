@@ -113,8 +113,7 @@ func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Em
 		Username: req.GetName().GetValue(),
 		Email:    req.GetEmail().GetValue(),
 	}
-	err := s.storage.Update(updateUser)
-	if err != nil {
+	if err := s.storage.Update(updateUser); err != nil {
 		return &emptypb.Empty{}, fmt.Errorf("error updating user: %w", err)
 	}
 
@@ -123,8 +122,7 @@ func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Em
 
 func (s *server) Delete(_ context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
 	idDel := dao.DeleteID(req.GetId())
-	err := s.storage.Delete(idDel)
-	if err != nil {
+	if err := s.storage.Delete(idDel); err != nil {
 		return &emptypb.Empty{}, fmt.Errorf("error deleting user: %w", err)
 	}
 

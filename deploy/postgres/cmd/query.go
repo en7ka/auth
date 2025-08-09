@@ -26,6 +26,7 @@ func InitStorage() (*Storage, error) {
 	if err != nil {
 		log.Fatal("Error connecting to database")
 	}
+
 	return &Storage{con: conn, ctx: ctx}, nil
 }
 
@@ -34,14 +35,18 @@ func getDSN() string {
 	if dsn == "" {
 		dsn = dbDSN
 	}
+
 	return dsn
 }
 
-func (s *Storage) CloseCon() {
+func (s *Storage) CloseCon() error {
 	err := s.con.Close(s.ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("failed to close connection: %v", err)
+		return err
 	}
+
+	return nil
 }
 
 // PostgresInterface
@@ -55,24 +60,27 @@ type PostgresInterface interface {
 // Save
 func (s *Storage) Save(user User) (int64, error) {
 	var id int64
+	query := "INSERT INTO users (username, email, password, role) VALUES (1,2, 3,4) RETURNING id"
 	// Возвращаем ID после вставки
-	err := s.con.QueryRow(s.ctx, "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id", user.Username, user.Email, user.Password, user.Role).Scan(&id)
-	if err != nil {
+	if err := s.con.QueryRow(s.ctx, query, user.Username, user.Email, user.Password, user.Role).Scan(&id); err != nil {
 		log.Printf("Error inserting user into database: %v", err)
 		return 0, err
 	}
 	log.Printf("Inserted user into database with id: %d", id)
+
 	return id, nil
 }
 
 // Update
 func (s *Storage) Update(update UpdateUser) error {
-	res, err := s.con.Exec(s.ctx, "UPDATE users SET username = $1, email = $2 WHERE id = $3", update.Username, update.Email, update.ID)
+	query := "UPDATE users SET username = $1, email = $2 WHERE id = $3"
+	res, err := s.con.Exec(s.ctx, query, update.Username, update.Email, update.ID)
 	if err != nil {
 		log.Printf("Error updating user into database: %v", err)
 		return err
 	}
 	log.Printf("Updated user into database: %d", res.RowsAffected())
+
 	return nil
 }
 
@@ -84,6 +92,7 @@ func (s *Storage) Delete(id DeleteID) error {
 		return err
 	}
 	log.Printf("Deleted user into database: %d", res.RowsAffected())
+
 	return nil
 }
 
