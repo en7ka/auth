@@ -11,6 +11,7 @@ option go_package = "github.com/en7ka/auth/pkg/user_v1;userv1";
 service UserAPI {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Get(GetRequest) returns (GetResponse);
+  rpc GetByUsername(GetByUsernameRequest) returns (GetResponse);
   rpc Update(UpdateRequest) returns (google.protobuf.Empty);
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
 }
@@ -33,6 +34,10 @@ enum Role {
 
 message GetRequest {
   int64 id = 1;
+}
+
+message GetByUsernameRequest {
+  string username = 1;
 }
 
 message GetResponse {
