@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	dbDSN = "host=localhost port=5433 dbname=users user=data-user password=note-password sslmode=disable"
+	dbDSN = "DEFAULT_DSN"
 )
 
 type Storage struct {
