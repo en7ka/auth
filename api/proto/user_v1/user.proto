@@ -12,6 +12,7 @@ service UserAPI {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Get(GetRequest) returns (GetResponse);
   rpc GetByUsername(GetByUsernameRequest) returns (GetResponse);
+  rpc GetByUsernames(GetByUsernamesRequest) returns (GetByUsernamesResponse);
   rpc Update(UpdateRequest) returns (google.protobuf.Empty);
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
 }
@@ -40,6 +41,18 @@ message GetByUsernameRequest {
   string username = 1;
 }
 
+message GetByUsernamesRequest {
+  repeated string usernames = 1;
+}
+
+message UserInfo{
+  int64 id = 1;
+  string username = 2;
+}
+
+message GetByUsernamesResponse {
+  repeated UserInfo users = 1;
+}
 message GetResponse {
   int64 id = 1;
   string name = 2;

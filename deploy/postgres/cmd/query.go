@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	userv1 "github.com/en7ka/auth/pkg/user_v1"
 	"log"
 	"os"
 
@@ -121,4 +122,29 @@ func (s *Storage) GetUser(params GetUserPar) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (s *Storage) GetByUsernames(ctx context.Context, req *userv1.GetByUsernameRequest) (*userv1.GetByUsernamesResponse, error) {
+	usernames := req.GetUsername()
+	if len(usernames) == 0 {
+		return &userv1.GetByUsernamesResponse{}, nil
+	}
+	query := "SELECT id, username FROM users WHERE username = ANY($1)"
+
+	rows, err := s.con.Query(ctx, query, usernames)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*userv1.UserInfo
+	for rows.Next() {
+		var user userv1.UserInfo
+		if err := rows.Scan(&user.Id, &user.Username); err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+
+	return &userv1.GetByUsernamesResponse{Users: users}, nil
 }
