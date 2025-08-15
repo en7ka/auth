@@ -2,129 +2,123 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
-	"path/filepath"
-	"runtime"
-	"time"
 
-	"github.com/joho/godotenv"
-
-	dao "github.com/en7ka/auth/deploy/postgres/cmd"
-
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	desc "github.com/en7ka/auth/pkg/user_v1"
+
+	"github.com/en7ka/auth/internal/config"
+	"github.com/en7ka/auth/internal/repository/auth"
+	"github.com/en7ka/auth/internal/repository/auth/converter"
+	"github.com/en7ka/auth/internal/repository/auth/model"
+	repinf "github.com/en7ka/auth/internal/repository/repositoryinterface"
 )
-
-const grpcPort = 50051
-
-func main() {
-	// Получаем абсолютный путь к текущему файлу
-	_, b, _, _ := runtime.Caller(0)
-	basepath := filepath.Dir(b)
-
-	// Строим абсолютный путь к файлу .env
-	envPath := filepath.Join(basepath, "../../deploy/.env")
-
-	// Загружаем .env
-	err := godotenv.Load(envPath)
-	if err != nil {
-		log.Fatalf("Ошибка загрузки файла .env: %v", err)
-	}
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
-	if err != nil {
-		log.Fatal("failed to listen: 50051 ")
-	}
-
-	storage, err := dao.InitStorage()
-	if err != nil {
-		log.Fatal("failed to init storage")
-	}
-	defer storage.CloseCon()
-
-	s := grpc.NewServer()
-	reflection.Register(s)
-	desc.RegisterUserAPIServer(s, &server{storage: storage})
-
-	log.Printf("server listening at %v", lis.Addr())
-
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
-}
 
 type server struct {
 	desc.UnimplementedUserAPIServer
-	storage dao.PostgresInterface
+	userRepository repinf.UserRepository
 }
 
-func toTimestampProto(t time.Time) *timestamppb.Timestamp {
-	return timestamppb.New(t)
-}
-
-func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-
-	params := dao.GetUserPar{ID: &req.Id}
-
-	userProfile, err := s.storage.GetUser(params)
+func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
+	id, err := s.userRepository.Create(ctx, &model.UserInfo{
+		Username: req.GetInfo().GetUsername(),
+		Email:    req.GetInfo().GetEmail(),
+		Password: req.GetInfo().GetPassword(),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("error when getting the user profile: %w", err)
+		return nil, err
 	}
-
-	response := &desc.GetResponse{
-		Id:        userProfile.ID,
-		Name:      userProfile.Username,
-		Email:     userProfile.Email,
-		Role:      userProfile.Role,
-		CreatedAt: toTimestampProto(userProfile.CreatedAt),
-		UpdatedAt: toTimestampProto(userProfile.UpdatedAt),
-	}
-
-	return response, nil
-}
-
-func (s *server) Create(_ context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-
-	user := dao.User{
-		Username: req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-		Role:     desc.Role_user,
-	}
-
-	id, err := s.storage.Save(user)
-	if err != nil {
-		return nil, fmt.Errorf("error when saving the user: %w", err)
-	}
-
 	return &desc.CreateResponse{Id: id}, nil
 }
 
-func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
-
-	updateUser := dao.UpdateUser{
-		ID:       req.GetId(),
-		Username: req.GetName().GetValue(),
-		Email:    req.GetEmail().GetValue(),
+func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+	u, err := s.userRepository.Get(ctx, req.GetId())
+	if err != nil {
+		return nil, err
 	}
-	if err := s.storage.Update(updateUser); err != nil {
-		return &emptypb.Empty{}, fmt.Errorf("error updating user: %w", err)
+	return &desc.GetResponse{
+		Note: &desc.Note{
+			Id: u.Id,
+			Info: &desc.NoteInfo{
+				Username: u.Info.Username,
+				Email:    u.Info.Email,
+				Password: u.Info.Password,
+				Role:     converter.RoleFromString(u.Role),
+			},
+			CreatedAt: timestamppb.New(u.CreatedAt),
+			UpdatedAt: timestamppb.New(u.UpdatedAt),
+		},
+	}, nil
+}
+
+func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
+	id := req.GetId()
+
+	info := &model.UserInfo{}
+	if v := req.GetInfo().GetUsername(); v != nil {
+		info.Username = v.GetValue()
+	}
+	if v := req.GetInfo().GetEmail(); v != nil {
+		info.Email = v.GetValue()
+	}
+
+	if err := s.userRepository.Update(ctx, id, info); err != nil {
+		return nil, err
 	}
 
 	return &emptypb.Empty{}, nil
 }
 
-func (s *server) Delete(_ context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
-	idDel := dao.DeleteID(req.GetId())
-	if err := s.storage.Delete(idDel); err != nil {
-		return &emptypb.Empty{}, fmt.Errorf("error deleting user: %w", err)
+func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
+	if err := s.userRepository.Delete(ctx, req.GetId()); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func main() {
+	ctx := context.Background()
+
+	if err := config.Load(".env"); err != nil {
+		log.Fatal(err)
 	}
 
-	return &emptypb.Empty{}, nil
+	grpcCfg, err := config.NewGRPCConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pgCfg, err := config.NewPGConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	lis, err := net.Listen("tcp", grpcCfg.Address())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pool, err := pgxpool.New(ctx, pgCfg.DSN())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pool.Close()
+
+	repo := auth.NewRepository(pool)
+
+	s := grpc.NewServer()
+	reflection.Register(s)
+	desc.RegisterUserAPIServer(s, &server{userRepository: repo})
+
+	log.Printf("grpc: %s", grpcCfg.Address())
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatal(err)
+	}
 }

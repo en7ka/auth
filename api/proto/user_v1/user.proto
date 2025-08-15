@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package api.user_v1;
 
-import 'google/protobuf/empty.proto';
-import 'google/protobuf/timestamp.proto';
-import 'google/protobuf/wrappers.proto';
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/en7ka/auth/pkg/user_v1;userv1";
 
@@ -15,20 +15,37 @@ service UserAPI {
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
 }
 
-message CreateRequest {
-  string name = 1;
+enum Role {
+  user = 0;
+  admin = 1;
+}
+
+message NoteInfo {
+  string username = 1;
   string email = 2;
   string password = 3;
-  string password_confirm = 4;
+  Role role = 4;
+}
+
+message Note {
+  int64 id = 1;
+  NoteInfo info = 2;
+  Role role = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message UpdateNoteInfo {
+  google.protobuf.StringValue username = 1;
+  google.protobuf.StringValue email = 2;
+}
+
+message CreateRequest {
+  NoteInfo info = 1;
 }
 
 message CreateResponse {
   int64 id = 1;
-}
-
-enum Role {
-  user = 0;
-  admin = 1;
 }
 
 message GetRequest {
@@ -36,18 +53,12 @@ message GetRequest {
 }
 
 message GetResponse {
-  int64 id = 1;
-  string name = 2;
-  string email = 3;
-  Role role = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
+  Note note = 1;
 }
 
 message UpdateRequest {
   int64 id = 1;
-  google.protobuf.StringValue name = 2;
-  google.protobuf.StringValue email = 3;
+  UpdateNoteInfo info = 2;
 }
 
 message DeleteRequest {
