@@ -8,5 +8,14 @@ import (
 )
 
 func (s *serv) Create(ctx context.Context, info *models.UserInfo) (int64, error) {
-	return s.userRepository.Create(ctx, repoconv.ToRepoUserInfo(info))
+	if info == nil {
+		return 0, nil
+	}
+
+	userId, err := s.userRepository.Create(ctx, repoconv.ToRepoUserInfo(info))
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }

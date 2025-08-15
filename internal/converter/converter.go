@@ -33,3 +33,16 @@ func ToUserInfoFromService(info *models.UserInfo) *desc.NoteInfo {
 		Password: info.Password,
 	}
 }
+
+func ToServiceModelFromDesc(userInfo *desc.NoteInfo) *models.User {
+	if userInfo == nil {
+		return nil
+	}
+	return &models.User{
+		Info: models.UserInfo{
+			Username: userInfo.Username,
+			Email:    userInfo.Email,
+			Password: userInfo.Password,
+		},
+	}
+}
