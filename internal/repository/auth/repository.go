@@ -3,13 +3,14 @@ package auth
 import (
 	"context"
 	"errors"
+
+	"github.com/en7ka/auth/internal/client/db"
 	"github.com/jackc/pgx/v5"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/en7ka/auth/internal/repository/auth/converter"
 	"github.com/en7ka/auth/internal/repository/auth/model"
 	repoif "github.com/en7ka/auth/internal/repository/repositoryinterface"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -22,10 +23,10 @@ const (
 )
 
 type repo struct {
-	db *pgxpool.Pool
+	db db.Client
 }
 
-func NewRepository(db *pgxpool.Pool) repoif.UserRepository {
+func NewRepository(db db.Client) repoif.UserRepository {
 	return &repo{db: db}
 }
 
@@ -41,10 +42,16 @@ func (r *repo) Create(ctx context.Context, info *model.UserInfo) (int64, error) 
 		return 0, err
 	}
 
+	q := db.Query{
+		Name:     "user_repository.Create",
+		QueryRaw: query,
+	}
+
 	var id int64
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&id); err != nil {
+	if err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id); err != nil {
 		return 0, err
 	}
+
 	return id, nil
 }
 
@@ -60,12 +67,16 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 		return nil, err
 	}
 
+	q := db.Query{
+		Name:     "user_repository.Get",
+		QueryRaw: query,
+	}
+
 	var u model.User
-	if err := r.db.QueryRow(ctx, query, args...).Scan(
-		&u.Id, &u.Info.Username, &u.Info.Email, &u.Info.Password, &u.Info.Role,
-	); err != nil {
+	if err = r.db.DB().ScanOneContext(ctx, &u, q, args...); err != nil {
 		return nil, err
 	}
+
 	return converter.ToUserFromRepo(&u), nil
 }
 
@@ -91,8 +102,12 @@ func (r *repo) Update(ctx context.Context, id int64, info *model.UserInfo) error
 		return err
 	}
 
+	q := db.Query{
+		Name:     "user_repository.Update",
+		QueryRaw: query,
+	}
 	var updatedID int64
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&updatedID); err != nil {
+	if err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&updatedID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return errors.New("user not found")
 		}
@@ -113,9 +128,15 @@ func (r *repo) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
+	q := db.Query{
+		Name:     "user_repository.Delete",
+		QueryRaw: query,
+	}
+
 	var deleted int64
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&deleted); err != nil {
+	if err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&deleted); err != nil {
 		return err
 	}
+
 	return nil
 }
