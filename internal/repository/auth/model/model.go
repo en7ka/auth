@@ -5,16 +5,16 @@ import (
 )
 
 type User struct {
-	Id        int64
-	Info      UserInfo
-	Role      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id        int64     `db:"id"`
+	Info      UserInfo  `db:""`
+	Role      string    `db:"role"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type UserInfo struct {
-	Username string
-	Email    string
-	Password string
-	Role     string
+	Username string `db:"username"`
+	Email    string `db:"email"`
+	Password string `db:"password"`
+	Role     string `db:"role"`
 }
