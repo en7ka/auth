@@ -3,7 +3,7 @@ export
 
 LOCAL_BIN=$(CURDIR)/bin
 GOOSE=$(LOCAL_BIN)/goose
-MIGR_DIR?=$(MIGRATION_DIR)
+MIGR_DIR=../db/migrations
 
 install-deps:
 	@mkdir -p $(LOCAL_BIN)

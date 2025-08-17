@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
+	"log"
+	"net"
+
 	"github.com/en7ka/auth/internal/closer"
 	"github.com/en7ka/auth/internal/config"
 	desc "github.com/en7ka/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
 type App struct {
@@ -76,7 +77,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (a *App) runGRPCServer() error {
-	log.Printf("GRPC server is running on #{a.serviceProvaider.GetGRPCConfig().Address()}")
+	log.Printf("GRPC server is running on: %v", a.serviceProvaider.GetGRPCConfig().Address())
 
 	list, err := net.Listen("tcp", a.serviceProvaider.GetGRPCConfig().Address())
 	if err != nil {
