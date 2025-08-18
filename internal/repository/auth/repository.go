@@ -85,13 +85,13 @@ func (r *repo) Update(ctx context.Context, id int64, info *model.UserInfo) error
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar)
 
-	if info.Username != "" {
+	if info.Username != nil {
 		qb = qb.Set(usernameColumn, info.Username)
 	}
-	if info.Email != "" {
+	if info.Email != nil {
 		qb = qb.Set(emailColumn, info.Email)
 	}
-	if info.Password != "" {
+	if info.Password != nil {
 		qb = qb.Set(passwordColumn, info.Password)
 	}
 

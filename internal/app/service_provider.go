@@ -25,7 +25,7 @@ type serviceProvaider struct {
 	userRepository userRepo.UserRepository
 	userService    userService.UserService
 
-	userImpl *auth.Implementation
+	userImpl *auth.Controller
 }
 
 func newServiceProvider() *serviceProvaider {
@@ -103,7 +103,7 @@ func (s *serviceProvaider) GetUserService(ctx context.Context) userService.UserS
 	return s.userService
 }
 
-func (s *serviceProvaider) GetUserImpl(ctx context.Context) *auth.Implementation {
+func (s *serviceProvaider) GetUserImpl(ctx context.Context) *auth.Controller {
 	if s.userImpl == nil {
 		s.userImpl = auth.NewImplementation(s.GetUserService(ctx))
 	}

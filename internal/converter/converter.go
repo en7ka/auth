@@ -46,3 +46,17 @@ func ToServiceModelFromDesc(userInfo *desc.NoteInfo) *models.User {
 		},
 	}
 }
+
+func UpdateRequestToUserInfo(req *desc.UpdateRequest) *models.UserInfo {
+	info := &models.UserInfo{}
+
+	if v := req.GetInfo().GetUsername(); v != nil {
+		info.Username = v.GetValue()
+	}
+
+	if v := req.GetInfo().GetEmail(); v != nil {
+		info.Email = v.GetValue()
+	}
+
+	return info
+}

@@ -13,8 +13,8 @@ type User struct {
 }
 
 type UserInfo struct {
-	Username string `db:"username"`
-	Email    string `db:"email"`
-	Password string `db:"password"`
-	Role     string `db:"role"`
+	Username *string `db:"username"`
+	Email    *string `db:"email"`
+	Password *string `db:"password"`
+	Role     *string `db:"role"`
 }
