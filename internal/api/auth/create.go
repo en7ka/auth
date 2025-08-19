@@ -9,9 +9,9 @@ import (
 )
 
 func (c *Controller) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	beach := converter.ToServiceModelFromDesc(req.GetInfo())
+	user := converter.ToServiceModelFromDesc(req.GetInfo())
 
-	id, err := c.userService.Create(ctx, &beach.Info)
+	id, err := c.userService.Create(ctx, &user.Info)
 	if err != nil {
 		return nil, err
 	}
