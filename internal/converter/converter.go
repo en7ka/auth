@@ -8,33 +8,33 @@ import (
 )
 
 // ToUserFromService конвертирует внутреннюю модель пользователя в модель для gRPC ответа.
-func ToUserFromService(user *models.User) *desc.Note {
+func ToUserFromService(user *models.User) *desc.User {
 	if user == nil {
 		return nil
 	}
 
-	return &desc.Note{
+	return &desc.User{
 		Id:        user.Id,
 		Info:      ToUserInfoFromService(&user.Info),
-		Role:      repoConverter.RoleFromString(user.Role),
+		Role:      repoConverter.RoleFromString(user.Info.Role),
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: timestamppb.New(user.UpdatedAt),
 	}
 }
 
-func ToUserInfoFromService(info *models.UserInfo) *desc.NoteInfo {
+func ToUserInfoFromService(info *models.UserInfo) *desc.UserInfo {
 	if info == nil {
 		return nil
 	}
 
-	return &desc.NoteInfo{
+	return &desc.UserInfo{
 		Username: info.Username,
 		Email:    info.Email,
 		Password: info.Password,
 	}
 }
 
-func ToServiceModelFromDesc(userInfo *desc.NoteInfo) *models.User {
+func ToServiceModelFromDesc(userInfo *desc.UserInfo) *models.User {
 	if userInfo == nil {
 		return nil
 	}
@@ -43,6 +43,7 @@ func ToServiceModelFromDesc(userInfo *desc.NoteInfo) *models.User {
 			Username: userInfo.Username,
 			Email:    userInfo.Email,
 			Password: userInfo.Password,
+			Role:     userInfo.Role.String(),
 		},
 	}
 }

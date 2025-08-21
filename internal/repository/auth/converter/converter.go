@@ -47,10 +47,11 @@ func ToRepoUserInfo(m *models.UserInfo) *repom.UserInfo {
 	if m == nil {
 		return nil
 	}
+
 	return &repom.UserInfo{
-		Username: m.Username,
-		Email:    m.Email,
-		Password: m.Password,
+		Username: &m.Username,
+		Email:    &m.Email,
+		Password: &m.Password,
 	}
 }
 
@@ -58,10 +59,26 @@ func ToModelUser(r *repom.User) *models.User {
 	if r == nil {
 		return nil
 	}
+
+	var username, email, password string
+	if r.Info.Username != nil {
+		username = *r.Info.Username
+	}
+	if r.Info.Email != nil {
+		email = *r.Info.Email
+	}
+	if r.Info.Password != nil {
+		password = *r.Info.Password
+	}
+
 	return &models.User{
-		Id:        r.Id,
-		Info:      models.UserInfo{Username: r.Info.Username, Email: r.Info.Email, Password: r.Info.Password},
-		Role:      r.Role,
+		Id: r.Id,
+		Info: models.UserInfo{
+			Username: username,
+			Email:    email,
+			Password: password,
+			Role:     r.Role,
+		},
 		CreatedAt: r.CreatedAt,
 		UpdatedAt: r.UpdatedAt,
 	}

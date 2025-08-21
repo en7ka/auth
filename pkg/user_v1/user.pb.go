@@ -69,7 +69,8 @@ func (Role) EnumDescriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{0}
 }
 
-type NoteInfo struct {
+// UserInfo содержит данные для создания пользователя
+type UserInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -80,8 +81,8 @@ type NoteInfo struct {
 	Role     Role   `protobuf:"varint,4,opt,name=role,proto3,enum=api.user_v1.Role" json:"role,omitempty"`
 }
 
-func (x *NoteInfo) Reset() {
-	*x = NoteInfo{}
+func (x *UserInfo) Reset() {
+	*x = UserInfo{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_user_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -89,13 +90,13 @@ func (x *NoteInfo) Reset() {
 	}
 }
 
-func (x *NoteInfo) String() string {
+func (x *UserInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NoteInfo) ProtoMessage() {}
+func (*UserInfo) ProtoMessage() {}
 
-func (x *NoteInfo) ProtoReflect() protoreflect.Message {
+func (x *UserInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_user_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -107,53 +108,54 @@ func (x *NoteInfo) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NoteInfo.ProtoReflect.Descriptor instead.
-func (*NoteInfo) Descriptor() ([]byte, []int) {
+// Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
+func (*UserInfo) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *NoteInfo) GetUsername() string {
+func (x *UserInfo) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *NoteInfo) GetEmail() string {
+func (x *UserInfo) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *NoteInfo) GetPassword() string {
+func (x *UserInfo) GetPassword() string {
 	if x != nil {
 		return x.Password
 	}
 	return ""
 }
 
-func (x *NoteInfo) GetRole() Role {
+func (x *UserInfo) GetRole() Role {
 	if x != nil {
 		return x.Role
 	}
 	return Role_user
 }
 
-type Note struct {
+// User представляет сущность пользователя в системе
+type User struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Info      *NoteInfo              `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
+	Info      *UserInfo              `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
 	Role      Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=api.user_v1.Role" json:"role,omitempty"`
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 }
 
-func (x *Note) Reset() {
-	*x = Note{}
+func (x *User) Reset() {
+	*x = User{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_user_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -161,13 +163,13 @@ func (x *Note) Reset() {
 	}
 }
 
-func (x *Note) String() string {
+func (x *User) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Note) ProtoMessage() {}
+func (*User) ProtoMessage() {}
 
-func (x *Note) ProtoReflect() protoreflect.Message {
+func (x *User) ProtoReflect() protoreflect.Message {
 	mi := &file_user_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -179,47 +181,48 @@ func (x *Note) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Note.ProtoReflect.Descriptor instead.
-func (*Note) Descriptor() ([]byte, []int) {
+// Deprecated: Use User.ProtoReflect.Descriptor instead.
+func (*User) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Note) GetId() int64 {
+func (x *User) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
 	return 0
 }
 
-func (x *Note) GetInfo() *NoteInfo {
+func (x *User) GetInfo() *UserInfo {
 	if x != nil {
 		return x.Info
 	}
 	return nil
 }
 
-func (x *Note) GetRole() Role {
+func (x *User) GetRole() Role {
 	if x != nil {
 		return x.Role
 	}
 	return Role_user
 }
 
-func (x *Note) GetCreatedAt() *timestamppb.Timestamp {
+func (x *User) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *Note) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
 	return nil
 }
 
-type UpdateNoteInfo struct {
+// UpdateUserInfo содержит поля, доступные для обновления
+type UpdateUserInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -228,8 +231,8 @@ type UpdateNoteInfo struct {
 	Email    *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 }
 
-func (x *UpdateNoteInfo) Reset() {
-	*x = UpdateNoteInfo{}
+func (x *UpdateUserInfo) Reset() {
+	*x = UpdateUserInfo{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_user_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -237,13 +240,13 @@ func (x *UpdateNoteInfo) Reset() {
 	}
 }
 
-func (x *UpdateNoteInfo) String() string {
+func (x *UpdateUserInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateNoteInfo) ProtoMessage() {}
+func (*UpdateUserInfo) ProtoMessage() {}
 
-func (x *UpdateNoteInfo) ProtoReflect() protoreflect.Message {
+func (x *UpdateUserInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_user_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -255,19 +258,19 @@ func (x *UpdateNoteInfo) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateNoteInfo.ProtoReflect.Descriptor instead.
-func (*UpdateNoteInfo) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpdateUserInfo.ProtoReflect.Descriptor instead.
+func (*UpdateUserInfo) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UpdateNoteInfo) GetUsername() *wrapperspb.StringValue {
+func (x *UpdateUserInfo) GetUsername() *wrapperspb.StringValue {
 	if x != nil {
 		return x.Username
 	}
 	return nil
 }
 
-func (x *UpdateNoteInfo) GetEmail() *wrapperspb.StringValue {
+func (x *UpdateUserInfo) GetEmail() *wrapperspb.StringValue {
 	if x != nil {
 		return x.Email
 	}
@@ -279,7 +282,7 @@ type CreateRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Info *NoteInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
+	Info *UserInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
 }
 
 func (x *CreateRequest) Reset() {
@@ -314,7 +317,7 @@ func (*CreateRequest) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CreateRequest) GetInfo() *NoteInfo {
+func (x *CreateRequest) GetInfo() *UserInfo {
 	if x != nil {
 		return x.Info
 	}
@@ -420,7 +423,7 @@ type GetResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Note *Note `protobuf:"bytes,1,opt,name=note,proto3" json:"note,omitempty"`
+	Note *User `protobuf:"bytes,1,opt,name=note,proto3" json:"note,omitempty"`
 }
 
 func (x *GetResponse) Reset() {
@@ -455,7 +458,7 @@ func (*GetResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetResponse) GetNote() *Note {
+func (x *GetResponse) GetNote() *User {
 	if x != nil {
 		return x.Note
 	}
@@ -468,7 +471,7 @@ type UpdateRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id   int64           `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Info *UpdateNoteInfo `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
+	Info *UpdateUserInfo `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
 }
 
 func (x *UpdateRequest) Reset() {
@@ -510,7 +513,7 @@ func (x *UpdateRequest) GetId() int64 {
 	return 0
 }
 
-func (x *UpdateRequest) GetInfo() *UpdateNoteInfo {
+func (x *UpdateRequest) GetInfo() *UpdateUserInfo {
 	if x != nil {
 		return x.Info
 	}
@@ -574,7 +577,7 @@ var file_user_proto_rawDesc = []byte{
 	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
 	0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x77, 0x72, 0x61, 0x70, 0x70, 0x65, 0x72,
-	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x7f, 0x0a, 0x08, 0x4e, 0x6f, 0x74, 0x65, 0x49,
+	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x7f, 0x0a, 0x08, 0x55, 0x73, 0x65, 0x72, 0x49,
 	0x6e, 0x66, 0x6f, 0x12, 0x1a, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12,
 	0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
@@ -582,11 +585,11 @@ var file_user_proto_rawDesc = []byte{
 	0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72,
 	0x64, 0x12, 0x25, 0x0a, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32,
 	0x11, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x52, 0x6f,
-	0x6c, 0x65, 0x52, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x22, 0xde, 0x01, 0x0a, 0x04, 0x4e, 0x6f, 0x74,
-	0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69,
+	0x6c, 0x65, 0x52, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x22, 0xde, 0x01, 0x0a, 0x04, 0x55, 0x73, 0x65,
+	0x72, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69,
 	0x64, 0x12, 0x29, 0x0a, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x4e, 0x6f,
-	0x74, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x12, 0x25, 0x0a, 0x04,
+	0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x55, 0x73,
+	0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x12, 0x25, 0x0a, 0x04,
 	0x72, 0x6f, 0x6c, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x11, 0x2e, 0x61, 0x70, 0x69,
 	0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x04, 0x72,
 	0x6f, 0x6c, 0x65, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61,
@@ -597,7 +600,7 @@ var file_user_proto_rawDesc = []byte{
 	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09,
 	0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0x7e, 0x0a, 0x0e, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x4e, 0x6f, 0x74, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x38, 0x0a, 0x08, 0x75,
+	0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x38, 0x0a, 0x08, 0x75,
 	0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
 	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x08, 0x75, 0x73, 0x65,
@@ -607,7 +610,7 @@ var file_user_proto_rawDesc = []byte{
 	0x75, 0x65, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x22, 0x3a, 0x0a, 0x0d, 0x43, 0x72, 0x65,
 	0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x29, 0x0a, 0x04, 0x69, 0x6e,
 	0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x75,
-	0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x4e, 0x6f, 0x74, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52,
+	0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52,
 	0x04, 0x69, 0x6e, 0x66, 0x6f, 0x22, 0x20, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52,
 	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x22, 0x1c, 0x0a, 0x0a, 0x47, 0x65, 0x74, 0x52, 0x65,
@@ -615,12 +618,12 @@ var file_user_proto_rawDesc = []byte{
 	0x03, 0x52, 0x02, 0x69, 0x64, 0x22, 0x34, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70,
 	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x25, 0x0a, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x11, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31,
-	0x2e, 0x4e, 0x6f, 0x74, 0x65, 0x52, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x22, 0x50, 0x0a, 0x0d, 0x55,
+	0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x22, 0x50, 0x0a, 0x0d, 0x55,
 	0x70, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02,
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x12, 0x2f, 0x0a, 0x04,
 	0x69, 0x6e, 0x66, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x61, 0x70, 0x69,
-	0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4e,
-	0x6f, 0x74, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x22, 0x1f, 0x0a,
+	0x2e, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55,
+	0x73, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x22, 0x1f, 0x0a,
 	0x0d, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e,
 	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x2a, 0x1b,
 	0x0a, 0x04, 0x52, 0x6f, 0x6c, 0x65, 0x12, 0x08, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x10, 0x00,
@@ -663,9 +666,9 @@ var file_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_user_proto_goTypes = []interface{}{
 	(Role)(0),                      // 0: api.user_v1.Role
-	(*NoteInfo)(nil),               // 1: api.user_v1.NoteInfo
-	(*Note)(nil),                   // 2: api.user_v1.Note
-	(*UpdateNoteInfo)(nil),         // 3: api.user_v1.UpdateNoteInfo
+	(*UserInfo)(nil),               // 1: api.user_v1.UserInfo
+	(*User)(nil),                   // 2: api.user_v1.User
+	(*UpdateUserInfo)(nil),         // 3: api.user_v1.UpdateUserInfo
 	(*CreateRequest)(nil),          // 4: api.user_v1.CreateRequest
 	(*CreateResponse)(nil),         // 5: api.user_v1.CreateResponse
 	(*GetRequest)(nil),             // 6: api.user_v1.GetRequest
@@ -677,16 +680,16 @@ var file_user_proto_goTypes = []interface{}{
 	(*emptypb.Empty)(nil),          // 12: google.protobuf.Empty
 }
 var file_user_proto_depIdxs = []int32{
-	0,  // 0: api.user_v1.NoteInfo.role:type_name -> api.user_v1.Role
-	1,  // 1: api.user_v1.Note.info:type_name -> api.user_v1.NoteInfo
-	0,  // 2: api.user_v1.Note.role:type_name -> api.user_v1.Role
-	10, // 3: api.user_v1.Note.created_at:type_name -> google.protobuf.Timestamp
-	10, // 4: api.user_v1.Note.updated_at:type_name -> google.protobuf.Timestamp
-	11, // 5: api.user_v1.UpdateNoteInfo.username:type_name -> google.protobuf.StringValue
-	11, // 6: api.user_v1.UpdateNoteInfo.email:type_name -> google.protobuf.StringValue
-	1,  // 7: api.user_v1.CreateRequest.info:type_name -> api.user_v1.NoteInfo
-	2,  // 8: api.user_v1.GetResponse.note:type_name -> api.user_v1.Note
-	3,  // 9: api.user_v1.UpdateRequest.info:type_name -> api.user_v1.UpdateNoteInfo
+	0,  // 0: api.user_v1.UserInfo.role:type_name -> api.user_v1.Role
+	1,  // 1: api.user_v1.User.info:type_name -> api.user_v1.UserInfo
+	0,  // 2: api.user_v1.User.role:type_name -> api.user_v1.Role
+	10, // 3: api.user_v1.User.created_at:type_name -> google.protobuf.Timestamp
+	10, // 4: api.user_v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 5: api.user_v1.UpdateUserInfo.username:type_name -> google.protobuf.StringValue
+	11, // 6: api.user_v1.UpdateUserInfo.email:type_name -> google.protobuf.StringValue
+	1,  // 7: api.user_v1.CreateRequest.info:type_name -> api.user_v1.UserInfo
+	2,  // 8: api.user_v1.GetResponse.note:type_name -> api.user_v1.User
+	3,  // 9: api.user_v1.UpdateRequest.info:type_name -> api.user_v1.UpdateUserInfo
 	4,  // 10: api.user_v1.UserAPI.Create:input_type -> api.user_v1.CreateRequest
 	6,  // 11: api.user_v1.UserAPI.Get:input_type -> api.user_v1.GetRequest
 	8,  // 12: api.user_v1.UserAPI.Update:input_type -> api.user_v1.UpdateRequest
@@ -709,7 +712,7 @@ func file_user_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_user_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NoteInfo); i {
+			switch v := v.(*UserInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -721,7 +724,7 @@ func file_user_proto_init() {
 			}
 		}
 		file_user_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Note); i {
+			switch v := v.(*User); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -733,7 +736,7 @@ func file_user_proto_init() {
 			}
 		}
 		file_user_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateNoteInfo); i {
+			switch v := v.(*UpdateUserInfo); i {
 			case 0:
 				return &v.state
 			case 1:
