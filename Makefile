@@ -40,3 +40,24 @@ docker-build-and-push:
 	docker buildx build -f deploy/Dockerfile --no-cache --platform linux/amd64 -t $(SELCLOUD_REGISTRY)/test-server:v0.0.1 .
 	docker login -u $(SELCLOUD_USERNAME) -p $(SELCLOUD_TOKEN) $(SELCLOUD_REGISTRY)
 	docker push $(SELCLOUD_REGISTRY)/test-server:v0.0.1
+
+docker-up:
+	docker compose -f ./deploy/docker-compose.yaml up -d
+
+docker-down:
+	docker compose -f ./deploy/docker-compose.yaml down
+
+test:
+	go clean -testcache
+	go test ./... -covermode count -coverpkg=github.com/en7ka/auth/internal/service/auth/...,github.com/en7ka/auth/internal/api/auth/... -count 5
+
+
+test-coverage:
+	go clean -testcache
+	go test ./... -coverprofile=coverage.tmp.out -covermode count -coverpkg=github.com/en7ka/auth/internal/service/auth/...,github.com/en7ka/auth/internal/api/auth/... -count 5
+	rm -rf coverage
+	mkdir -p coverage
+	grep -v 'mocks\|config' coverage.tmp.out > coverage/coverage.out
+	rm coverage.tmp.out
+	go tool cover -html=coverage/coverage.out -o coverage/coverage.html;
+	go tool cover -func=./coverage/coverage.out | grep "total";

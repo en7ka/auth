@@ -2,21 +2,27 @@ package auth
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/en7ka/auth/internal/models"
-	repoconv "github.com/en7ka/auth/internal/repository/auth/converter"
+	"github.com/en7ka/auth/internal/repository/auth/converter"
+	repoModel "github.com/en7ka/auth/internal/repository/auth/model"
 )
 
-func (s *serv) Get(ctx context.Context, id int64) (*models.User, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("invalid id %d", id)
-	}
+func (s *serv) Get(ctx context.Context, id int64) (*models.UserInfo, error) {
+	var repoUser *repoModel.User
+	err := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
+		var txErr error
+		repoUser, txErr = s.userRepository.Get(ctx, id)
+		if txErr != nil {
+			return txErr
+		}
+		return nil
+	})
 
-	user, err := s.userRepository.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return repoconv.ToModelUser(user), nil
+	serviceUser := converter.ToServiceUserInfo(repoUser)
+	return serviceUser, nil
 }

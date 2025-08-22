@@ -16,7 +16,7 @@ func (c *Controller) Create(ctx context.Context, req *desc.CreateRequest) (*desc
 	if err != nil {
 		return nil, fmt.Errorf("error while creating: %w", err)
 	}
-	log.Printf("inserted user id %s", id)
+	log.Printf("inserted user id %v", id)
 
 	return &desc.CreateResponse{
 		Id: id,

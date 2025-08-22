@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/en7ka/auth/internal/models"
 	repoconv "github.com/en7ka/auth/internal/repository/auth/converter"
@@ -17,9 +16,14 @@ func (s *serv) Update(ctx context.Context, id int64, info *models.UserInfo) erro
 		return errors.New("user info cannot be nil")
 	}
 
-	if err := s.userRepository.Update(ctx, id, repoconv.ToRepoUserInfo(info)); err != nil {
-		return fmt.Errorf("failed to update user in repository: %w", err)
-	}
+	err := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
+		txErr := s.userRepository.Update(ctx, id, repoconv.ToRepoUserInfo(info))
+		if txErr != nil {
+			return txErr
+		}
 
-	return nil
+		return nil
+	})
+
+	return err
 }
