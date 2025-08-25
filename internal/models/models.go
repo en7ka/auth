@@ -17,3 +17,8 @@ type UserInfo struct {
 	Password string
 	Role     string
 }
+
+type GetUserParams struct {
+	ID       *int64
+	Username *string
+}
