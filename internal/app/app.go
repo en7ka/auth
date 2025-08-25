@@ -14,8 +14,8 @@ import (
 )
 
 type App struct {
-	serviceProvaider *serviceProvaider
-	grpcServer       *grpc.Server
+	serviceProvider *serviceProvider
+	grpcServer      *grpc.Server
 }
 
 func (a *App) Run() error {
@@ -61,7 +61,7 @@ func (a *App) initConfig(_ context.Context) error {
 }
 
 func (a *App) initServerProvider(_ context.Context) error {
-	a.serviceProvaider = newServiceProvider()
+	a.serviceProvider = newServiceProvider()
 
 	return nil
 }
@@ -71,15 +71,15 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 
 	reflection.Register(a.grpcServer)
 
-	desc.RegisterUserAPIServer(a.grpcServer, a.serviceProvaider.GetUserImpl(ctx))
+	desc.RegisterUserAPIServer(a.grpcServer, a.serviceProvider.GetUserImpl(ctx))
 
 	return nil
 }
 
 func (a *App) runGRPCServer() error {
-	log.Printf("GRPC server is running on: %v", a.serviceProvaider.GetGRPCConfig().Address())
+	log.Printf("GRPC server is running on: %v", a.serviceProvider.GetGRPCConfig().Address())
 
-	list, err := net.Listen("tcp", a.serviceProvaider.GetGRPCConfig().Address())
+	list, err := net.Listen("tcp", a.serviceProvider.GetGRPCConfig().Address())
 	if err != nil {
 		return err
 	}

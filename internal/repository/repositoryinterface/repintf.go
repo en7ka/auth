@@ -15,6 +15,7 @@ type UserRepository interface {
 }
 
 type UserCache interface {
-	Create(ctx context.Context, id int64, user model.User) (int64, error)
-	Get(ctx context.Context, params models.GetUserParams) (*models.User, error)
+	Set(ctx context.Context, id int64, user *models.UserInfo) error
+	Delete(ctx context.Context, id int64) error
+	Get(ctx context.Context, id int64) (*models.UserInfo, error)
 }

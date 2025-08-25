@@ -1,16 +1,16 @@
 package redis
 
 import (
-	"github.com/en7ka/auth/internal/client/cache/redis"
 	repinf "github.com/en7ka/auth/internal/repository/repositoryinterface"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 type cache struct {
-	cl redis.Client
+	pool *redigo.Pool
 }
 
-func NewRedisCache(cl redis.Client) repinf.UserCache {
+func NewRedisCache(pool *redigo.Pool) repinf.UserCache {
 	return &cache{
-		cl: cl,
+		pool: pool,
 	}
 }
