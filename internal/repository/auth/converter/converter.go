@@ -43,26 +43,73 @@ func RoleToString(r userv1.Role) string {
 	}
 }
 
-func ToRepoUserInfo(m *models.UserInfo) *repom.UserInfo {
-	if m == nil {
-		return nil
+func ToRepoUserInfo(info *models.UserInfo) *repom.UserInfo {
+	repoInfo := &repom.UserInfo{
+		Role: info.Role,
 	}
-	return &repom.UserInfo{
-		Username: m.Username,
-		Email:    m.Email,
-		Password: m.Password,
+
+	if info.Username != "" {
+		repoInfo.Username = &info.Username
 	}
+	if info.Email != "" {
+		repoInfo.Email = &info.Email
+	}
+	if info.Password != "" {
+		repoInfo.Password = &info.Password
+	}
+
+	return repoInfo
 }
 
 func ToModelUser(r *repom.User) *models.User {
 	if r == nil {
 		return nil
 	}
+
+	var username, email, password string
+	if r.Info.Username != nil {
+		username = *r.Info.Username
+	}
+	if r.Info.Email != nil {
+		email = *r.Info.Email
+	}
+	if r.Info.Password != nil {
+		password = *r.Info.Password
+	}
+
 	return &models.User{
-		Id:        r.Id,
-		Info:      models.UserInfo{Username: r.Info.Username, Email: r.Info.Email, Password: r.Info.Password},
-		Role:      r.Role,
+		Id: r.Id,
+		Info: models.UserInfo{
+			Username: username,
+			Email:    email,
+			Password: password,
+			Role:     r.Role,
+		},
 		CreatedAt: r.CreatedAt,
 		UpdatedAt: r.UpdatedAt,
+	}
+}
+
+func ToServiceUserInfo(user *repom.User) *models.UserInfo {
+	if user == nil {
+		return nil
+	}
+
+	var username, email, password string
+	if user.Info.Username != nil {
+		username = *user.Info.Username
+	}
+	if user.Info.Email != nil {
+		email = *user.Info.Email
+	}
+	if user.Info.Password != nil {
+		password = *user.Info.Password
+	}
+
+	return &models.UserInfo{
+		Username: username,
+		Email:    email,
+		Password: password,
+		Role:     user.Role,
 	}
 }

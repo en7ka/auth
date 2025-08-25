@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 )
 
 func (s *serv) Delete(ctx context.Context, id int64) error {
@@ -11,9 +11,26 @@ func (s *serv) Delete(ctx context.Context, id int64) error {
 		return errors.New("invalid id")
 	}
 
-	if err := s.userRepository.Delete(ctx, id); err != nil {
-		return fmt.Errorf("delete user: %w", err)
+	err := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
+		var txErr error
+		txErr = s.userRepository.Delete(ctx, id)
+		if txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
+
+	go func() {
+		cacheCtx := context.Background()
+		if cacheErr := s.userCache.Delete(cacheCtx, id); cacheErr != nil {
+			log.Printf("cache Delete error (non-blocking): %v", cacheErr)
+		}
+	}()
 
 	return nil
 }

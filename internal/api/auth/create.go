@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/en7ka/auth/internal/converter"
@@ -13,9 +14,9 @@ func (c *Controller) Create(ctx context.Context, req *desc.CreateRequest) (*desc
 
 	id, err := c.userService.Create(ctx, &user.Info)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while creating: %w", err)
 	}
-	log.Printf("inserted user id %s", id)
+	log.Printf("inserted user id %v", id)
 
 	return &desc.CreateResponse{
 		Id: id,

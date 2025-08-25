@@ -2,18 +2,23 @@ package auth
 
 import (
 	"github.com/en7ka/auth/internal/client/db"
-	repoif "github.com/en7ka/auth/internal/repository/repositoryinterface"
-	userService "github.com/en7ka/auth/internal/service/servinterface"
+	repinf "github.com/en7ka/auth/internal/repository/repositoryinterface"
 )
 
 type serv struct {
-	userRepository repoif.UserRepository
+	userRepository repinf.UserRepository
+	userCache      repinf.UserCache
 	txManager      db.TxManager
 }
 
-func NewService(userRepository repoif.UserRepository, txManager db.TxManager) userService.UserService {
+func NewService(
+	userRepository repinf.UserRepository,
+	userCache repinf.UserCache,
+	txManager db.TxManager,
+) *serv {
 	return &serv{
 		userRepository: userRepository,
+		userCache:      userCache,
 		txManager:      txManager,
 	}
 }

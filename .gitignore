@@ -4,3 +4,5 @@
 /deploy/bin/goose
 .idea/
 .env
+/coverage/coverage.html
+/coverage/coverage.out
