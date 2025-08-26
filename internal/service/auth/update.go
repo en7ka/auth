@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/en7ka/auth/internal/models"
 	repoconv "github.com/en7ka/auth/internal/repository/auth/converter"
@@ -25,5 +26,16 @@ func (s *serv) Update(ctx context.Context, id int64, info *models.UserInfo) erro
 		return nil
 	})
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		cacheCtx := context.Background()
+		if cacheErr := s.userCache.Delete(cacheCtx, id); cacheErr != nil {
+			log.Printf("cache Delete error (non-blocking): %v", cacheErr)
+		}
+	}()
+
+	return nil
 }

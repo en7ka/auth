@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
 )
 
 func (s *serv) Delete(ctx context.Context, id int64) error {
@@ -20,5 +21,16 @@ func (s *serv) Delete(ctx context.Context, id int64) error {
 		return nil
 	})
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		cacheCtx := context.Background()
+		if cacheErr := s.userCache.Delete(cacheCtx, id); cacheErr != nil {
+			log.Printf("cache Delete error (non-blocking): %v", cacheErr)
+		}
+	}()
+
+	return nil
 }
