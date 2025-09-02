@@ -6,3 +6,4 @@
 .env
 /coverage/coverage.html
 /coverage/coverage.out
+/pkg/swagger/swagger-api swagger-ui master dist/
