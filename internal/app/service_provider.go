@@ -16,6 +16,7 @@ import (
 	servAuth "github.com/en7ka/auth/internal/service/auth"
 	"github.com/en7ka/auth/internal/service/servinterface"
 	redigo "github.com/gomodule/redigo/redis"
+	"github.com/segmentio/kafka-go"
 )
 
 type serviceProvider struct {
@@ -24,10 +25,12 @@ type serviceProvider struct {
 	redisConfig   config.RedisConfig
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConfig
+	kafkaConfig   config.KafkaConfig
 
-	dbClient  db.Client
-	redisPool *redigo.Pool
-	txManager db.TxManager
+	kafkaProducer *kafka.Writer
+	dbClient      db.Client
+	redisPool     *redigo.Pool
+	txManager     db.TxManager
 
 	userRepository repoinf.UserRepository
 	userCache      repoinf.UserCache
@@ -113,6 +116,43 @@ func (s *serviceProvider) GetSwaggerConfig() config.SwaggerConfig {
 	}
 
 	return s.swaggerConfig
+}
+
+func (s *serviceProvider) GetKafkaConfig() config.KafkaConfig {
+	if s.kafkaConfig == nil {
+		cfg, err := config.NewKafkaConfig()
+		if err != nil {
+			log.Fatalf("failed to get kafka config: %s", err)
+		}
+
+		s.kafkaConfig = cfg
+	}
+
+	return s.kafkaConfig
+}
+
+func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
+	if s.kafkaProducer == nil {
+		cfg := s.GetKafkaConfig()
+		//настройка writer
+		write := kafka.Writer{
+			//Addr принимаем адрес брокеров
+			//... распаковываем слайс в аргументы
+			Addr:         kafka.TCP(cfg.Addresses()...),
+			RequiredAcks: kafka.RequireAll,
+			MaxAttempts:  5,
+			//он отправляет сообщения в партицию с наименьшей нагрузкой
+			Balancer: &kafka.LeastBytes{},
+			Async:    false,
+		}
+
+		closer.Add(func() error {
+			log.Printf("kafka writer is closing")
+			return write.Close()
+		})
+	}
+
+	return s.kafkaProducer
 }
 
 func (s *serviceProvider) GetRedisPool() *redigo.Pool {
