@@ -35,15 +35,15 @@ copy-to-server:
 	scp auth_linux root@87.228.114.237:
 
 docker-build-and-push:
-	docker buildx build -f deploy/Dockerfile --no-cache --platform linux/amd64 -t $(SELCLOUD_REGISTRY)/test-server:v0.0.1 .
+	docker buildx build --no-cache --platform linux/amd64 -t $(SELCLOUD_REGISTRY)/test-server:v0.0.1 .
 	docker login -u $(SELCLOUD_USERNAME) -p $(SELCLOUD_TOKEN) $(SELCLOUD_REGISTRY)
 	docker push $(SELCLOUD_REGISTRY)/test-server:v0.0.1
 
 docker-up:
-	docker compose -f ./deploy/docker-compose.yaml up -d
+	docker compose up -d
 
 docker-down:
-	docker compose -f ./deploy/docker-compose.yaml down
+	docker compose down
 
 test:
 	go clean -testcache

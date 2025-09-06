@@ -205,5 +205,6 @@ func (s *serviceProvider) GetUserImpl(ctx context.Context) *auth.Controller {
 	if s.userImpl == nil {
 		s.userImpl = auth.NewImplementation(s.GetUserService(ctx))
 	}
+
 	return s.userImpl
 }
