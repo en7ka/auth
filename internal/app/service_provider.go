@@ -134,25 +134,19 @@ func (s *serviceProvider) GetKafkaConfig() config.KafkaConfig {
 func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
 	if s.kafkaProducer == nil {
 		cfg := s.GetKafkaConfig()
-		//настройка writer
-		write := kafka.Writer{
-			//Addr принимаем адрес брокеров
-			//... распаковываем слайс в аргументы
+		s.kafkaProducer = &kafka.Writer{
 			Addr:         kafka.TCP(cfg.Addresses()...),
 			Topic:        cfg.Theme(),
 			RequiredAcks: kafka.RequireAll,
 			MaxAttempts:  5,
-			//он отправляет сообщения в партицию с наименьшей нагрузкой
-			Balancer: &kafka.LeastBytes{},
-			Async:    false,
+			Balancer:     &kafka.LeastBytes{},
+			Async:        false,
 		}
-
 		closer.Add(func() error {
 			log.Printf("kafka writer is closing")
-			return write.Close()
+			return s.kafkaProducer.Close()
 		})
 	}
-
 	return s.kafkaProducer
 }
 
@@ -200,6 +194,7 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 			s.GetKafkaProducer(),
 		)
 	}
+
 	return s.userService
 }
 
