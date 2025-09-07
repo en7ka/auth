@@ -139,6 +139,7 @@ func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
 			//Addr принимаем адрес брокеров
 			//... распаковываем слайс в аргументы
 			Addr:         kafka.TCP(cfg.Addresses()...),
+			Topic:        cfg.Theme(),
 			RequiredAcks: kafka.RequireAll,
 			MaxAttempts:  5,
 			//он отправляет сообщения в партицию с наименьшей нагрузкой
@@ -196,6 +197,7 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 			s.GetUserRepository(ctx),
 			s.GetUserCache(ctx),
 			s.GetTxManager(ctx),
+			s.GetKafkaProducer(),
 		)
 	}
 	return s.userService

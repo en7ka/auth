@@ -146,7 +146,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initSwaggerServer(ctx context.Context) error {
+func (a *App) initSwaggerServer(_ context.Context) error {
 	statiksFs, err := fs.New()
 	if err != nil {
 		return err
