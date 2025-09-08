@@ -1,10 +1,10 @@
 FROM golang:1.24.5-alpine AS builder
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY ../go.mod go.sum ./
 RUN go mod download
 
-COPY . .
+COPY .. .
 
 # Собираем приложение
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/user-server ./cmd/grpc_server

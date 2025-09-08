@@ -94,9 +94,9 @@ services:
     container_name: auth-service
     restart: always
     build:
-      context: .
-      dockerfile: Dockerfile
-    env_file: .env
+      context: ..
+      dockerfile: ../Dockerfile
+    env_file: ../.env
     ports:
       - "${HTTP_PORT}:8081"
       - "${GRPC_PORT}:50051"
@@ -109,9 +109,9 @@ services:
     container_name: notifier-service
     restart: always
     build:
-      context: ../notifier
-      dockerfile: Dockerfile
-    env_file: ../notifier/.env
+      context: ../../notifier
+      dockerfile: ../../notifier/Dockerfile
+    env_file: ../../notifier/.env
     depends_on:
       - kafka1
       - kafka2
