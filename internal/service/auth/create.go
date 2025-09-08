@@ -36,7 +36,12 @@ func (s *serv) Create(ctx context.Context, info *models.UserInfo) (int64, error)
 		return 0, err
 	}
 
+	log.Printf("--- User created with ID: %d. Checking if producer exists... ---", userID)
+
 	if s.producer != nil {
+
+		log.Println("--- Producer exists. Attempting to write message... ---")
+
 		evt := userRegisteredEvent{
 			ID:    userID,
 			Name:  info.Username,

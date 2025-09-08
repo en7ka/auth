@@ -133,6 +133,8 @@ func (s *serviceProvider) GetKafkaConfig() config.KafkaConfig {
 
 func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
 	if s.kafkaProducer == nil {
+		log.Println("--- Creating Kafka Producer for the first time ---")
+
 		cfg := s.GetKafkaConfig()
 		s.kafkaProducer = &kafka.Writer{
 			Addr:         kafka.TCP(cfg.Addresses()...),
@@ -142,11 +144,13 @@ func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
 			Balancer:     &kafka.LeastBytes{},
 			Async:        false,
 		}
+
 		closer.Add(func() error {
 			log.Printf("kafka writer is closing")
 			return s.kafkaProducer.Close()
 		})
 	}
+
 	return s.kafkaProducer
 }
 
