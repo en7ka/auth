@@ -36,31 +36,30 @@ func (s *serv) Create(ctx context.Context, info *models.UserInfo) (int64, error)
 		return 0, err
 	}
 
-	log.Printf("--- User created with ID: %d. Checking if producer exists... ---", userID)
+	go s.produceCreateEvent(ctx, userID, info)
 
-	if s.producer != nil {
+	return userID, nil
+}
 
-		log.Println("--- Producer exists. Attempting to write message... ---")
+func (s *serv) produceCreateEvent(ctx context.Context, userID int64, info *models.UserInfo) error {
+	evt := userRegisteredEvent{
+		ID:    userID,
+		Name:  info.Username,
+		Email: info.Email,
+		Role:  info.Role,
+	}
 
-		evt := userRegisteredEvent{
-			ID:    userID,
-			Name:  info.Username,
-			Email: info.Email,
-			Role:  info.Role,
-		}
-		payload, mErr := json.Marshal(evt)
-		if mErr != nil {
-
-			log.Printf("marshal user-registered event: %v", mErr)
-		} else {
-			if wErr := s.producer.WriteMessages(ctx, kafka.Message{
-				Key:   []byte(strconv.FormatInt(userID, 10)),
-				Value: payload,
-			}); wErr != nil {
-				log.Printf("publish user-registered failed: %v", wErr)
-			}
+	payload, mErr := json.Marshal(evt)
+	if mErr != nil {
+		log.Printf("marshal user-registered event: %v", mErr)
+	} else {
+		if wErr := s.producer.WriteMessages(ctx, kafka.Message{
+			Key:   []byte(strconv.FormatInt(userID, 10)),
+			Value: payload,
+		}); wErr != nil {
+			log.Printf("publish user-registered failed: %v", wErr)
 		}
 	}
 
-	return userID, nil
+	return nil
 }
