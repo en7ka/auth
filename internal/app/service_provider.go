@@ -16,6 +16,7 @@ import (
 	servAuth "github.com/en7ka/auth/internal/service/auth"
 	"github.com/en7ka/auth/internal/service/servinterface"
 	redigo "github.com/gomodule/redigo/redis"
+	"github.com/segmentio/kafka-go"
 )
 
 type serviceProvider struct {
@@ -24,10 +25,12 @@ type serviceProvider struct {
 	redisConfig   config.RedisConfig
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConfig
+	kafkaConfig   config.KafkaConfig
 
-	dbClient  db.Client
-	redisPool *redigo.Pool
-	txManager db.TxManager
+	kafkaProducer *kafka.Writer
+	dbClient      db.Client
+	redisPool     *redigo.Pool
+	txManager     db.TxManager
 
 	userRepository repoinf.UserRepository
 	userCache      repoinf.UserCache
@@ -115,6 +118,42 @@ func (s *serviceProvider) GetSwaggerConfig() config.SwaggerConfig {
 	return s.swaggerConfig
 }
 
+func (s *serviceProvider) GetKafkaConfig() config.KafkaConfig {
+	if s.kafkaConfig == nil {
+		cfg, err := config.NewKafkaConfig()
+		if err != nil {
+			log.Fatalf("failed to get kafka config: %s", err)
+		}
+
+		s.kafkaConfig = cfg
+	}
+
+	return s.kafkaConfig
+}
+
+func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
+	if s.kafkaProducer == nil {
+		log.Println("--- Creating Kafka Producer for the first time ---")
+
+		cfg := s.GetKafkaConfig()
+		s.kafkaProducer = &kafka.Writer{
+			Addr:         kafka.TCP(cfg.Addresses()...),
+			Topic:        cfg.Theme(),
+			RequiredAcks: kafka.RequireAll,
+			MaxAttempts:  5,
+			Balancer:     &kafka.LeastBytes{},
+			Async:        false,
+		}
+
+		closer.Add(func() error {
+			log.Printf("kafka writer is closing")
+			return s.kafkaProducer.Close()
+		})
+	}
+
+	return s.kafkaProducer
+}
+
 func (s *serviceProvider) GetRedisPool() *redigo.Pool {
 	if s.redisPool == nil {
 		s.redisPool = &redigo.Pool{
@@ -156,8 +195,10 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 			s.GetUserRepository(ctx),
 			s.GetUserCache(ctx),
 			s.GetTxManager(ctx),
+			s.GetKafkaProducer(),
 		)
 	}
+
 	return s.userService
 }
 
@@ -165,5 +206,6 @@ func (s *serviceProvider) GetUserImpl(ctx context.Context) *auth.Controller {
 	if s.userImpl == nil {
 		s.userImpl = auth.NewImplementation(s.GetUserService(ctx))
 	}
+
 	return s.userImpl
 }
