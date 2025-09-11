@@ -5,14 +5,50 @@ package api.user_v1;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/en7ka/auth/pkg/user_v1;userv1";
+option go_package = "github.com/en7ka/auth/pkg/user_v1;user_v1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+        title: "User API"
+        contact: {
+            name: "en7ka";
+            email: "enikdamei1999@mail.ru"
+        };
+    };
+
+    host: "localhost:8080";
+    schemes: HTTP;
+    consumes: "application/json";
+    produces: "application/json";
+};
 
 service UserAPI {
-  rpc Create(CreateRequest) returns (CreateResponse);
-  rpc Get(GetRequest) returns (GetResponse);
-  rpc Update(UpdateRequest) returns (google.protobuf.Empty);
-  rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+  rpc Create(CreateRequest) returns (CreateResponse) {
+    option (google.api.http) = {
+      post: "/user/v1/create"
+      body: "*"
+    };
+  };
+  rpc Get(GetRequest) returns (GetResponse) {
+    option(google.api.http) = {
+      get: "/user/v1"
+    };
+  };
+  rpc Update(UpdateRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get: "/user/v1/list"
+    };
+  };
+  rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      patch: "/user/v1/{id}"
+      body:  "*"
+    };
+  };
 }
 
 enum Role {
@@ -22,29 +58,29 @@ enum Role {
 
 // UserInfo содержит данные для создания пользователя
 message UserInfo {
-  string username = 1;
-  string email = 2;
-  string password = 3;
-  Role role = 4;
+  string username = 1 [(validate.rules).string = {min_len: 1, max_len: 255}];
+  string email = 2 [(validate.rules).string.email = true];
+  string password = 3 [(validate.rules).string = {min_len: 6, max_len: 255}];
+  Role role = 4 [(validate.rules).enum = {defined_only: true}];
 }
 
 // User представляет сущность пользователя в системе
 message User {
   int64 id = 1;
   UserInfo info = 2;
-  Role role = 3;
+  Role role = 3 [(validate.rules).enum = {defined_only: true}];
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp updated_at = 5;
 }
 
 // UpdateUserInfo содержит поля, доступные для обновления
 message UpdateUserInfo {
-  google.protobuf.StringValue username = 1;
-  google.protobuf.StringValue email = 2;
+  google.protobuf.StringValue username = 1 [(validate.rules).string = {min_len: 1, max_len: 255}];
+  google.protobuf.StringValue email = 2 [(validate.rules).string.email = true];
 }
 
 message CreateRequest {
-  UserInfo info = 1;
+  UserInfo info = 1 [(validate.rules).message.required = true];
 }
 
 message CreateResponse {
@@ -61,7 +97,7 @@ message GetResponse {
 
 message UpdateRequest {
   int64 id = 1;
-  UpdateUserInfo info = 2;
+  UpdateUserInfo info = 2 [(validate.rules).message.required = true];
 }
 
 message DeleteRequest {

@@ -20,18 +20,23 @@ import (
 	"github.com/en7ka/auth/internal/service/servinterface"
 	servUser "github.com/en7ka/auth/internal/service/user"
 	redigo "github.com/gomodule/redigo/redis"
+	"github.com/segmentio/kafka-go"
 )
 
 type serviceProvider struct {
-	pgConfig     config.PGConfig
-	grpcConfig   config.GRPCConfig
-	redisConfig  config.RedisConfig
-	jwtConfig    config.JWTConfig
-	accessConfig config.AccessConfig
+	pgConfig      config.PGConfig
+	grpcConfig    config.GRPCConfig
+	redisConfig   config.RedisConfig
+	jwtConfig     config.JWTConfig
+	accessConfig  config.AccessConfig
+	httpConfig    config.HTTPConfig
+	swaggerConfig config.SwaggerConfig
+	kafkaConfig   config.KafkaConfig
 
-	dbClient  db.Client
-	redisPool *redigo.Pool
-	txManager db.TxManager
+	kafkaProducer *kafka.Writer
+	dbClient      db.Client
+	redisPool     *redigo.Pool
+	txManager     db.TxManager
 
 	userRepository repoinf.UserRepository
 	userCache      repoinf.UserCache
@@ -84,7 +89,7 @@ func (s *serviceProvider) GetRedisConfig() config.RedisConfig {
 	return s.redisConfig
 }
 
-func (s *serviceProvider) GetJWTConfig(_ context.Context) config.JWTConfig {
+func (s *serviceProvider) GetJWTConfig(ctx context.Context) config.JWTConfig {
 	if s.jwtConfig == nil {
 		cfg, err := config.NewJWTConfig()
 		if err != nil {
@@ -96,7 +101,7 @@ func (s *serviceProvider) GetJWTConfig(_ context.Context) config.JWTConfig {
 	return s.jwtConfig
 }
 
-func (s *serviceProvider) GetAccessConfig(_ context.Context) config.AccessConfig {
+func (s *serviceProvider) GetAccessConfig(ctx context.Context) config.AccessConfig {
 	if s.accessConfig == nil {
 		cfg, err := config.NewAccessConfig()
 		if err != nil {
@@ -106,6 +111,68 @@ func (s *serviceProvider) GetAccessConfig(_ context.Context) config.AccessConfig
 	}
 
 	return s.accessConfig
+}
+
+func (s *serviceProvider) GetHTTPConfig() config.HTTPConfig {
+	if s.httpConfig == nil {
+		cfg, err := config.NewHTTPConfig()
+		if err != nil {
+			log.Fatalf("failed to load http config: %v", err)
+		}
+
+		s.httpConfig = cfg
+	}
+
+	return s.httpConfig
+}
+
+func (s *serviceProvider) GetSwaggerConfig() config.SwaggerConfig {
+	if s.swaggerConfig == nil {
+		cfg, err := config.NewSwaggerConfig()
+		if err != nil {
+			log.Fatalf("failed to get swagger config: %s", err)
+		}
+
+		s.swaggerConfig = cfg
+	}
+
+	return s.swaggerConfig
+}
+
+func (s *serviceProvider) GetKafkaConfig() config.KafkaConfig {
+	if s.kafkaConfig == nil {
+		cfg, err := config.NewKafkaConfig()
+		if err != nil {
+			log.Fatalf("failed to get kafka config: %s", err)
+		}
+
+		s.kafkaConfig = cfg
+	}
+
+	return s.kafkaConfig
+}
+
+func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
+	if s.kafkaProducer == nil {
+		log.Println("--- Creating Kafka Producer for the first time ---")
+
+		cfg := s.GetKafkaConfig()
+		s.kafkaProducer = &kafka.Writer{
+			Addr:         kafka.TCP(cfg.Addresses()...),
+			Topic:        cfg.Theme(),
+			RequiredAcks: kafka.RequireAll,
+			MaxAttempts:  5,
+			Balancer:     &kafka.LeastBytes{},
+			Async:        false,
+		}
+
+		closer.Add(func() error {
+			log.Printf("kafka writer is closing")
+			return s.kafkaProducer.Close()
+		})
+	}
+
+	return s.kafkaProducer
 }
 
 func (s *serviceProvider) GetDBClient(ctx context.Context) db.Client {
@@ -162,7 +229,7 @@ func (s *serviceProvider) GetAuthRepository(ctx context.Context) repoinf.AuthRep
 	return s.authRepository
 }
 
-func (s *serviceProvider) GetUserCache(_ context.Context) repoinf.UserCache {
+func (s *serviceProvider) GetUserCache(ctx context.Context) repoinf.UserCache {
 	if s.userCache == nil {
 		redisClient := clRedis.NewClient(s.GetRedisPool(), s.GetRedisConfig())
 		s.userCache = repoRedis.NewRedisCache(redisClient)
@@ -177,6 +244,7 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 			s.GetUserRepository(ctx),
 			s.GetUserCache(ctx),
 			s.GetTxManager(ctx),
+			s.GetKafkaProducer(),
 		)
 	}
 
@@ -196,6 +264,7 @@ func (s *serviceProvider) GetAuthService(ctx context.Context) servinterface.Auth
 
 	return s.authService
 }
+
 func (s *serviceProvider) GetUserApiController(ctx context.Context) *userApi.Controller {
 	if s.userImpl == nil {
 		s.userImpl = userApi.NewImplementation(s.GetUserService(ctx))
