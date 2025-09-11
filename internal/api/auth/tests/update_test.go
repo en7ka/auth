@@ -99,7 +99,7 @@ func TestUpdate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			userServiceMock := tt.userServiceMock(mc)
-			api := auth.NewImplementation(userServiceMock)
+			api := user.NewImplementation(userServiceMock)
 
 			res, err := api.Update(tt.args.ctx, tt.args.req)
 			if tt.err != nil {

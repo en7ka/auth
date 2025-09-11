@@ -32,7 +32,7 @@ type serviceProvider struct {
 
 	userService servinterface.UserService
 
-	userImpl *auth.Controller
+	userImpl *user.Controller
 }
 
 func newServiceProvider() *serviceProvider {
@@ -133,9 +133,9 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 	return s.userService
 }
 
-func (s *serviceProvider) GetUserImpl(ctx context.Context) *auth.Controller {
+func (s *serviceProvider) GetUserImpl(ctx context.Context) *user.Controller {
 	if s.userImpl == nil {
-		s.userImpl = auth.NewImplementation(s.GetUserService(ctx))
+		s.userImpl = user.NewImplementation(s.GetUserService(ctx))
 	}
 	return s.userImpl
 }

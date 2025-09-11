@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	desc "github.com/en7ka/auth/pkg/user_v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

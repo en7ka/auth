@@ -3,6 +3,7 @@ package converter
 import (
 	"github.com/en7ka/auth/internal/models"
 	repoConverter "github.com/en7ka/auth/internal/repository/auth/converter"
+	authv1 "github.com/en7ka/auth/pkg/auth_v1"
 	desc "github.com/en7ka/auth/pkg/user_v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -60,4 +61,41 @@ func UpdateRequestToUserInfo(req *desc.UpdateRequest) *models.UserInfo {
 	}
 
 	return info
+}
+
+func ToLoginFromAuthAPI(req *authv1.LoginRequest) *models.LoginRequest {
+	if req == nil {
+		return nil
+	}
+	return &models.LoginRequest{
+		Username: req.GetUsername(),
+		Password: req.GetPassword(),
+	}
+}
+
+func ToGetRefreshTokenFromDesc(req *authv1.GetRefreshTokenRequest) *models.GetRefreshTokenRequest {
+	if req == nil {
+		return nil
+	}
+	return &models.GetRefreshTokenRequest{
+		OldToken: req.GetOldRefreshToken(),
+	}
+}
+
+func ToGetAccessTokenFromAuthAPI(req *authv1.GetAccessTokenRequest) *models.GetAccessTokenRequest {
+	if req == nil {
+		return nil
+	}
+	return &models.GetAccessTokenRequest{
+		RefreshToken: req.GetRefreshToken(),
+	}
+}
+
+func ToCheckAccessFromAuthAPI(req *authv1.CheckRequest) *models.CheckRequest {
+	if req == nil {
+		return nil
+	}
+	return &models.CheckRequest{
+		EndpointAddress: req.EndpointAddress,
+	}
 }

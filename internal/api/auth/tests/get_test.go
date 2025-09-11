@@ -110,7 +110,7 @@ func TestGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			userServiceMock := tt.userServiceMock(mc)
-			api := auth.NewImplementation(userServiceMock)
+			api := user.NewImplementation(userServiceMock)
 
 			response, err := api.Get(tt.args.ctx, tt.args.req)
 			if tt.err != nil {

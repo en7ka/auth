@@ -133,7 +133,7 @@ func TestCreate(t *testing.T) {
 			t.Parallel()
 
 			userServiceMock := tt.userServiceMock(mc)
-			api := auth.NewImplementation(userServiceMock)
+			api := user.NewImplementation(userServiceMock)
 
 			newID, err := api.Create(tt.args.ctx, tt.args.req)
 			if tt.err != nil {
