@@ -1,31 +1,23 @@
-// Файл: internal/repository/redis/set.go
-
 package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/en7ka/auth/internal/models"
 )
 
-const userExpirationSeconds = 900 // 15 minutes
-
 // Set сохраняет пользователя в кэш.
 func (c *cache) Set(ctx context.Context, id int64, user *models.UserInfo) error {
-	conn, err := c.pool.GetContext(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get connection from redis pool: %w", err)
+	idFormatted := strconv.FormatInt(id, 10)
+	rm := toRedisModels(*user)
+	if err := c.pool.HashSet(ctx, idFormatted, rm); err != nil {
+		return fmt.Errorf("failed to hash user: %w", err)
 	}
-	defer conn.Close()
-
-	userKey := fmt.Sprintf("user:%d", id)
-	data, err := json.Marshal(user)
-	if err != nil {
-		return fmt.Errorf("failed to marshal user for cache: %w", err)
+	if err := c.pool.Expire(ctx, idFormatted, 5*time.Minute); err != nil {
+		return fmt.Errorf("failed to set expiration for user: %w", err)
 	}
-
-	_, err = conn.Do("SETEX", userKey, userExpirationSeconds, data)
-	return err
+	return nil
 }

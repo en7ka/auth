@@ -1,22 +1,19 @@
-// Файл: internal/repository/redis/delete.go
-
 package redis
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/gomodule/redigo/redis"
 )
 
-// Delete удаляет пользователя из кэша (инвалидация).
 func (c *cache) Delete(ctx context.Context, id int64) error {
-	conn, err := c.pool.GetContext(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get connection from redis pool: %w", err)
-	}
-	defer conn.Close()
-
-	userKey := fmt.Sprintf("user:%d", id)
-	_, err = conn.Do("DEL", userKey)
-
-	return err
+	key := fmt.Sprintf("user:%d", id)
+	return c.pool.Execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+		_, err := conn.Do("DEL", key)
+		if err != nil {
+			return fmt.Errorf("failed to delete user from cache: %w", err)
+		}
+		return nil
+	})
 }

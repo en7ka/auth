@@ -1,15 +1,14 @@
-// Файл: internal/repository/redis/get.go
-
 package redis
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/en7ka/auth/internal/models"
-	redigo "github.com/gomodule/redigo/redis"
+	redismodels "github.com/en7ka/auth/internal/repository/auth/model"
+	"github.com/gomodule/redigo/redis"
 )
 
 var (
@@ -18,26 +17,29 @@ var (
 
 // Get получает пользователя из кэша.
 func (c *cache) Get(ctx context.Context, id int64) (*models.UserInfo, error) {
-	conn, err := c.pool.GetContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get connection from redis pool: %w", err)
-	}
-	defer conn.Close()
+	key := strconv.FormatInt(id, 10)
 
-	userKey := fmt.Sprintf("user:%d", id)
-
-	data, err := redigo.Bytes(conn.Do("GET", userKey))
+	userCache, err := c.pool.HGetAll(ctx, key)
 	if err != nil {
-		if errors.Is(err, redigo.ErrNil) {
+		if err == redis.ErrNil {
 			return nil, ErrNotFound
 		}
-		return nil, err
+		return nil, fmt.Errorf("redis HGetAll error: %w", err)
 	}
 
-	var userInfo models.UserInfo
-	if err := json.Unmarshal(data, &userInfo); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal user data from cache: %w", err)
+	if len(userCache) == 0 {
+		return nil, ErrNotFound
 	}
 
-	return &userInfo, nil
+	var userProfile redismodels.UserRedis
+	if err := redis.ScanStruct(userCache, &userProfile); err != nil {
+		return nil, fmt.Errorf("error scanning user profile: %w", err)
+	}
+
+	user, err := toServiceModelsUserInfo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("error converting user profile: %w", err)
+	}
+
+	return user, nil
 }

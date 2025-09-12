@@ -5,43 +5,60 @@ import (
 	redismodels "github.com/en7ka/auth/internal/repository/auth/model"
 )
 
-func toRedisModels(user models.User) redismodels.User {
+func toRedisModels(userInfo models.UserInfo) redismodels.User {
 
 	return redismodels.User{
-		Id: user.Id,
 		Info: redismodels.UserInfo{
-			Username: &user.Info.Username,
-			Email:    &user.Info.Email,
-			Password: &user.Info.Password,
+			Username: &userInfo.Username,
+			Email:    &userInfo.Email,
+			Password: &userInfo.Password,
 		},
-		Role:      user.Info.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		Role: userInfo.Role,
 	}
 }
 
-func toServiceModels(user redismodels.User) (*models.User, error) {
+func toServiceModels(user redismodels.UserRedis) (*models.User, error) {
 
 	var username, email, password string
-	if user.Info.Username != nil {
-		username = *user.Info.Username
+	if user.Name == "" {
+		username = user.Name
 	}
-	if user.Info.Email != nil {
-		email = *user.Info.Email
+	if user.Email == "" {
+		email = user.Email
 	}
-	if user.Info.Password != nil {
-		password = *user.Info.Password
+	if user.Password == "" {
+		password = user.Password
 	}
 
+	user1 := &models.UserInfo{
+		Username: username,
+		Email:    email,
+		Password: password,
+	}
 	return &models.User{
-		Id:        user.Id,
+		Id:        user.ID,
+		Info:      *user1,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
-		Info: models.UserInfo{
-			Username: username,
-			Email:    email,
-			Password: password,
-			Role:     user.Role,
-		},
 	}, nil
+}
+
+func toServiceModelsUserInfo(userProfile redismodels.UserRedis) (*models.UserInfo, error) {
+	userInfo := &models.UserInfo{}
+
+	userInfo.Role = userProfile.Role
+
+	if userProfile.Name == "" {
+		userInfo.Username = userProfile.Name
+	}
+
+	if userProfile.Email == "" {
+		userInfo.Email = userProfile.Email
+	}
+
+	if userProfile.Password == "" {
+		userInfo.Password = userProfile.Password
+	}
+
+	return userInfo, nil
 }
