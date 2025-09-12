@@ -13,7 +13,7 @@ local-migration-status:
 	$(GOOSE) -dir $(MIGR_DIR) postgres "host=$(PG_HOST) port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable" status -v
 
 local-migration-up:
-	$(GOOSE) -dir $(MIGR_DIR) postgres "host=$(PG_HOST) port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable" up -v
+	$(GOOSE) -dir $(MIGR_DIR) postgres "host=localhost port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable" up -v
 
 local-migration-down:
 	$(GOOSE) -dir $(MIGR_DIR) postgres "host=$(PG_HOST) port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable" down -v
