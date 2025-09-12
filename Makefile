@@ -46,7 +46,7 @@ docker-build-and-push:
 	docker push $(SELCLOUD_REGISTRY)/test-server:v0.0.1
 
 docker-up:
-	docker compose -f ./deploy/docker-compose.yaml up --build -d
+	docker compose -f ./deploy/docker-compose.yaml up -d
 
 docker-down:
 	docker compose -f ./deploy/docker-compose.yaml down

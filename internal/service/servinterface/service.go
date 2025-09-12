@@ -15,7 +15,7 @@ type UserService interface {
 
 type AuthService interface {
 	Login(ctx context.Context, user models.LoginRequest) (*models.LoginResponse, error)
-	Check(ctx context.Context, token string) (bool, error)
+	Check(ctx context.Context, request models.CheckRequest) error
 	GetRefreshToken(ctx context.Context, request models.GetRefreshTokenRequest) (*models.GetRefreshTokenResponse, error)
 	GetAccessToken(ctx context.Context, req models.GetAccessTokenRequest) (*models.GetAccessTokenResponse, error)
 }

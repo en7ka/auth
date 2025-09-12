@@ -15,15 +15,19 @@ import (
 	repoAuth "github.com/en7ka/auth/internal/repository/auth"
 	repoRedis "github.com/en7ka/auth/internal/repository/redis"
 	repoinf "github.com/en7ka/auth/internal/repository/repositoryinterface"
+	repoUser "github.com/en7ka/auth/internal/repository/user"
 	servAuth "github.com/en7ka/auth/internal/service/auth"
 	"github.com/en7ka/auth/internal/service/servinterface"
+	servUser "github.com/en7ka/auth/internal/service/user"
 	redigo "github.com/gomodule/redigo/redis"
 )
 
 type serviceProvider struct {
-	pgConfig    config.PGConfig
-	grpcConfig  config.GRPCConfig
-	redisConfig config.RedisConfig
+	pgConfig     config.PGConfig
+	grpcConfig   config.GRPCConfig
+	redisConfig  config.RedisConfig
+	jwtConfig    config.JWTConfig
+	accessConfig config.AccessConfig
 
 	dbClient  db.Client
 	redisPool *redigo.Pool
@@ -31,8 +35,10 @@ type serviceProvider struct {
 
 	userRepository repoinf.UserRepository
 	userCache      repoinf.UserCache
+	authRepository repoinf.AuthRepository
 
 	userService servinterface.UserService
+	authService servinterface.AuthService
 
 	userImpl *userApi.Controller
 	authImpl *authApi.Controller
@@ -76,6 +82,30 @@ func (s *serviceProvider) GetRedisConfig() config.RedisConfig {
 	}
 
 	return s.redisConfig
+}
+
+func (s *serviceProvider) GetJWTConfig(_ context.Context) config.JWTConfig {
+	if s.jwtConfig == nil {
+		cfg, err := config.NewJWTConfig()
+		if err != nil {
+			log.Fatalf("failed to load jwt config: %v", err)
+		}
+		s.jwtConfig = cfg
+	}
+
+	return s.jwtConfig
+}
+
+func (s *serviceProvider) GetAccessConfig(_ context.Context) config.AccessConfig {
+	if s.accessConfig == nil {
+		cfg, err := config.NewAccessConfig()
+		if err != nil {
+			log.Fatalf("failed to load access config: %v", err)
+		}
+		s.accessConfig = cfg
+	}
+
+	return s.accessConfig
 }
 
 func (s *serviceProvider) GetDBClient(ctx context.Context) db.Client {
@@ -124,7 +154,15 @@ func (s *serviceProvider) GetUserRepository(ctx context.Context) repoinf.UserRep
 	return s.userRepository
 }
 
-func (s *serviceProvider) GetUserCache(ctx context.Context) repoinf.UserCache {
+func (s *serviceProvider) GetAuthRepository(ctx context.Context) repoinf.AuthRepository {
+	if s.authRepository == nil {
+		s.authRepository = repoUser.NewRepository(s.GetDBClient(ctx))
+	}
+
+	return s.authRepository
+}
+
+func (s *serviceProvider) GetUserCache(_ context.Context) repoinf.UserCache {
 	if s.userCache == nil {
 		redisClient := clRedis.NewClient(s.GetRedisPool(), s.GetRedisConfig())
 		s.userCache = repoRedis.NewRedisCache(redisClient)
@@ -145,10 +183,31 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 	return s.userService
 }
 
+func (s *serviceProvider) GetAuthService(ctx context.Context) servinterface.AuthService {
+	if s.authService == nil {
+		s.authService = servUser.NewService(
+			s.GetAuthRepository(ctx),
+			s.GetUserCache(ctx),
+			s.GetTxManager(ctx),
+			s.GetJWTConfig(ctx),
+			s.GetAccessConfig(ctx),
+		)
+	}
+
+	return s.authService
+}
 func (s *serviceProvider) GetUserApiController(ctx context.Context) *userApi.Controller {
 	if s.userImpl == nil {
 		s.userImpl = userApi.NewImplementation(s.GetUserService(ctx))
 	}
 
 	return s.userImpl
+}
+
+func (s *serviceProvider) GetAuthApiController(ctx context.Context) *authApi.Controller {
+	if s.authImpl == nil {
+		s.authImpl = authApi.NewImplementation(s.GetAuthService(ctx))
+	}
+
+	return s.authImpl
 }

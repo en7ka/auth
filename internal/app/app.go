@@ -7,6 +7,7 @@ import (
 
 	"github.com/en7ka/auth/internal/closer"
 	"github.com/en7ka/auth/internal/config"
+	descAccess "github.com/en7ka/auth/pkg/auth_v1"
 	desc "github.com/en7ka/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -72,6 +73,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	reflection.Register(a.grpcServer)
 
 	desc.RegisterUserAPIServer(a.grpcServer, a.serviceProvider.GetUserApiController(ctx))
+	descAccess.RegisterAuthApiServer(a.grpcServer, a.serviceProvider.GetAuthApiController(ctx))
 
 	return nil
 }
