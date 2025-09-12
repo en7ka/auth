@@ -71,7 +71,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 
 	reflection.Register(a.grpcServer)
 
-	desc.RegisterUserAPIServer(a.grpcServer, a.serviceProvider.GetUserImpl(ctx))
+	desc.RegisterUserAPIServer(a.grpcServer, a.serviceProvider.GetUserApiController(ctx))
 
 	return nil
 }

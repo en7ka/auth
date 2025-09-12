@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/en7ka/auth/internal/api/auth"
+	userApi "github.com/en7ka/auth/internal/api/auth"
+	authApi "github.com/en7ka/auth/internal/api/user"
+	clRedis "github.com/en7ka/auth/internal/client/cache/redis"
 	"github.com/en7ka/auth/internal/client/db"
 	"github.com/en7ka/auth/internal/client/db/pg"
 	"github.com/en7ka/auth/internal/client/db/transaction"
@@ -32,7 +34,8 @@ type serviceProvider struct {
 
 	userService servinterface.UserService
 
-	userImpl *user.Controller
+	userImpl *userApi.Controller
+	authImpl *authApi.Controller
 }
 
 func newServiceProvider() *serviceProvider {
@@ -47,6 +50,7 @@ func (s *serviceProvider) GetPGConfig() config.PGConfig {
 		}
 		s.pgConfig = cfg
 	}
+
 	return s.pgConfig
 }
 
@@ -58,6 +62,7 @@ func (s *serviceProvider) GetGRPCConfig() config.GRPCConfig {
 		}
 		s.grpcConfig = cfg
 	}
+
 	return s.grpcConfig
 }
 
@@ -69,6 +74,7 @@ func (s *serviceProvider) GetRedisConfig() config.RedisConfig {
 		}
 		s.redisConfig = cfg
 	}
+
 	return s.redisConfig
 }
 
@@ -84,6 +90,7 @@ func (s *serviceProvider) GetDBClient(ctx context.Context) db.Client {
 		closer.Add(cl.Close)
 		s.dbClient = cl
 	}
+
 	return s.dbClient
 }
 
@@ -105,6 +112,7 @@ func (s *serviceProvider) GetTxManager(ctx context.Context) db.TxManager {
 	if s.txManager == nil {
 		s.txManager = transaction.NewTransactionManager(s.GetDBClient(ctx).DB())
 	}
+
 	return s.txManager
 }
 
@@ -112,13 +120,16 @@ func (s *serviceProvider) GetUserRepository(ctx context.Context) repoinf.UserRep
 	if s.userRepository == nil {
 		s.userRepository = repoAuth.NewRepository(s.GetDBClient(ctx))
 	}
+
 	return s.userRepository
 }
 
 func (s *serviceProvider) GetUserCache(ctx context.Context) repoinf.UserCache {
 	if s.userCache == nil {
-		s.userCache = repoRedis.NewRedisCache(s.GetRedisPool())
+		redisClient := clRedis.NewClient(s.GetRedisPool(), s.GetRedisConfig())
+		s.userCache = repoRedis.NewRedisCache(redisClient)
 	}
+
 	return s.userCache
 }
 
@@ -130,12 +141,14 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 			s.GetTxManager(ctx),
 		)
 	}
+
 	return s.userService
 }
 
-func (s *serviceProvider) GetUserImpl(ctx context.Context) *user.Controller {
+func (s *serviceProvider) GetUserApiController(ctx context.Context) *userApi.Controller {
 	if s.userImpl == nil {
-		s.userImpl = user.NewImplementation(s.GetUserService(ctx))
+		s.userImpl = userApi.NewImplementation(s.GetUserService(ctx))
 	}
+
 	return s.userImpl
 }
