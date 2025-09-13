@@ -8,7 +8,7 @@ import (
 )
 
 func (c *Controller) GetRefreshToken(ctx context.Context, req *authv1.GetRefreshTokenRequest) (*authv1.GetRefreshTokenResponse, error) {
-	resp, err := c.authService.GetRefreshToken(ctx, *converter.ToGetRefreshTokenFromDesc(req))
+	resp, err := c.authService.GetRefreshToken(ctx, converter.ToGetRefreshTokenFromDesc(req))
 	if err != nil {
 		return nil, err
 	}

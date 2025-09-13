@@ -40,8 +40,8 @@ type serviceProvider struct {
 	userService servinterface.UserService
 	authService servinterface.AuthService
 
-	userImpl *userApi.Controller
-	authImpl *authApi.Controller
+	userController *userApi.Controller
+	authController *authApi.Controller
 }
 
 func newServiceProvider() *serviceProvider {
@@ -197,17 +197,17 @@ func (s *serviceProvider) GetAuthService(ctx context.Context) servinterface.Auth
 	return s.authService
 }
 func (s *serviceProvider) GetUserApiController(ctx context.Context) *userApi.Controller {
-	if s.userImpl == nil {
-		s.userImpl = userApi.NewImplementation(s.GetUserService(ctx))
+	if s.userController == nil {
+		s.userController = userApi.NewController(s.GetUserService(ctx))
 	}
 
-	return s.userImpl
+	return s.userController
 }
 
 func (s *serviceProvider) GetAuthApiController(ctx context.Context) *authApi.Controller {
-	if s.authImpl == nil {
-		s.authImpl = authApi.NewImplementation(s.GetAuthService(ctx))
+	if s.authController == nil {
+		s.authController = authApi.NewController(s.GetAuthService(ctx))
 	}
 
-	return s.authImpl
+	return s.authController
 }

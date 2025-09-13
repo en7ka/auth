@@ -63,39 +63,40 @@ func UpdateRequestToUserInfo(req *desc.UpdateRequest) *models.UserInfo {
 	return info
 }
 
-func ToLoginFromAuthAPI(req *authv1.LoginRequest) *models.LoginRequest {
+func ToLoginFromAuthAPI(req *authv1.LoginRequest) models.LoginRequest {
 	if req == nil {
-		return nil
+		return models.LoginRequest{}
 	}
-	return &models.LoginRequest{
+	return models.LoginRequest{
 		Username: req.GetUsername(),
 		Password: req.GetPassword(),
 	}
 }
 
-func ToGetRefreshTokenFromDesc(req *authv1.GetRefreshTokenRequest) *models.GetRefreshTokenRequest {
+func ToGetRefreshTokenFromDesc(req *authv1.GetRefreshTokenRequest) models.GetRefreshTokenRequest {
 	if req == nil {
-		return nil
+		return models.GetRefreshTokenRequest{}
 	}
-	return &models.GetRefreshTokenRequest{
+	return models.GetRefreshTokenRequest{
 		OldToken: req.GetOldRefreshToken(),
 	}
 }
 
-func ToGetAccessTokenFromAuthAPI(req *authv1.GetAccessTokenRequest) *models.GetAccessTokenRequest {
+func ToGetAccessTokenFromAuthAPI(req *authv1.GetAccessTokenRequest) models.GetAccessTokenRequest {
 	if req == nil {
-		return nil
+		return models.GetAccessTokenRequest{}
 	}
-	return &models.GetAccessTokenRequest{
+
+	return models.GetAccessTokenRequest{
 		RefreshToken: req.GetRefreshToken(),
 	}
 }
 
-func ToCheckAccessFromAuthAPI(req *authv1.CheckRequest) *models.CheckRequest {
+func ToCheckAccessFromAuthAPI(req *authv1.CheckRequest) models.CheckRequest {
 	if req == nil {
-		return nil
+		return models.CheckRequest{}
 	}
-	return &models.CheckRequest{
+	return models.CheckRequest{
 		EndpointAddress: req.EndpointAddress,
 	}
 }

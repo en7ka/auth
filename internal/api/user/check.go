@@ -9,8 +9,7 @@ import (
 )
 
 func (c *Controller) Check(ctx context.Context, req *authv1.CheckRequest) (*emptypb.Empty, error) {
-	err := c.authService.Check(ctx, *converter.ToCheckAccessFromAuthAPI(req))
-	if err != nil {
+	if err := c.authService.Check(ctx, converter.ToCheckAccessFromAuthAPI(req)); err != nil {
 		return nil, err
 	}
 

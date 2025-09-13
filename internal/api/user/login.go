@@ -8,7 +8,7 @@ import (
 )
 
 func (c *Controller) Login(ctx context.Context, req *authv1.LoginRequest) (*authv1.LoginResponse, error) {
-	resp, err := c.authService.Login(ctx, *converter.ToLoginFromAuthAPI(req))
+	resp, err := c.authService.Login(ctx, converter.ToLoginFromAuthAPI(req))
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func (c *Controller) GetAccessToken(ctx context.Context, req *authv1.GetAccessTokenRequest) (*authv1.GetAccessTokenResponse, error) {
-	resp, err := c.authService.GetAccessToken(ctx, *converter.ToGetAccessTokenFromAuthAPI(req))
+	resp, err := c.authService.GetAccessToken(ctx, converter.ToGetAccessTokenFromAuthAPI(req))
 	if err != nil {
 		return nil, err
 	}

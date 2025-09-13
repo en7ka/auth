@@ -6,10 +6,10 @@ import (
 )
 
 type Controller struct {
-	authService usserv.AuthService
 	desc.UnimplementedAuthApiServer
+	authService usserv.AuthService
 }
 
-func NewImplementation(authService usserv.AuthService) *Controller {
+func NewController(authService usserv.AuthService) *Controller {
 	return &Controller{authService: authService}
 }

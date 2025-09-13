@@ -10,6 +10,6 @@ type Controller struct {
 	userService usserv.UserService
 }
 
-func NewImplementation(userService usserv.UserService) *Controller {
+func NewController(userService usserv.UserService) *Controller {
 	return &Controller{userService: userService}
 }
