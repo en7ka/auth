@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/en7ka/auth/internal/client/db"
-	repinf "github.com/en7ka/auth/internal/repository/repositoryinterface"
+	repoinf "github.com/en7ka/auth/internal/repository/repositoryinterface"
 	"github.com/segmentio/kafka-go"
 )
 

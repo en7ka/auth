@@ -14,7 +14,7 @@ import (
 	descAccess "github.com/en7ka/auth/pkg/auth_v1"
 	desc "github.com/en7ka/auth/pkg/user_v1"
 	_ "github.com/en7ka/auth/statik"
-	"github.comcom/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
@@ -95,7 +95,7 @@ func (a *App) initDeps(ctx context.Context) error {
 }
 
 func (a *App) initConfig(_ context.Context) error {
-	if err := config.Load("../.env"); err != nil {
+	if err := config.Load(".env"); err != nil {
 		return err
 	}
 
@@ -111,7 +111,11 @@ func (a *App) initServerProvider(_ context.Context) error {
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
-		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
+		grpc.ChainUnaryInterceptor(
+			interceptor.ValidateInterceptor,
+			interceptor.LoggerInterceptor,
+			interceptor.MetricsInterceptor,
+		),
 	)
 
 	reflection.Register(a.grpcServer)
