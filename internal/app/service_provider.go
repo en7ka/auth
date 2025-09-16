@@ -20,18 +20,23 @@ import (
 	"github.com/en7ka/auth/internal/service/servinterface"
 	servUser "github.com/en7ka/auth/internal/service/user"
 	redigo "github.com/gomodule/redigo/redis"
+	"github.com/segmentio/kafka-go"
 )
 
 type serviceProvider struct {
-	pgConfig     config.PGConfig
-	grpcConfig   config.GRPCConfig
-	redisConfig  config.RedisConfig
-	jwtConfig    config.JWTConfig
-	accessConfig config.AccessConfig
+	pgConfig      config.PGConfig
+	grpcConfig    config.GRPCConfig
+	redisConfig   config.RedisConfig
+	httpConfig    config.HTTPConfig
+	swaggerConfig config.SwaggerConfig
+	kafkaConfig   config.KafkaConfig
+	jwtConfig     config.JWTConfig
+	accessConfig  config.AccessConfig
 
-	dbClient  db.Client
-	redisPool *redigo.Pool
-	txManager db.TxManager
+	kafkaProducer *kafka.Writer
+	dbClient      db.Client
+	redisPool     *redigo.Pool
+	txManager     db.TxManager
 
 	userRepository repoinf.UserRepository
 	userCache      repoinf.UserCache
@@ -70,6 +75,32 @@ func (s *serviceProvider) GetGRPCConfig() config.GRPCConfig {
 	}
 
 	return s.grpcConfig
+}
+
+func (s *serviceProvider) GetHTTPConfig() config.HTTPConfig {
+	if s.httpConfig == nil {
+		cfg, err := config.NewHTTPConfig()
+		if err != nil {
+			log.Fatalf("failed to load http config: %v", err)
+		}
+
+		s.httpConfig = cfg
+	}
+
+	return s.httpConfig
+}
+
+func (s *serviceProvider) GetSwaggerConfig() config.SwaggerConfig {
+	if s.swaggerConfig == nil {
+		cfg, err := config.NewSwaggerConfig()
+		if err != nil {
+			log.Fatalf("failed to get swagger config: %s", err)
+		}
+
+		s.swaggerConfig = cfg
+	}
+
+	return s.swaggerConfig
 }
 
 func (s *serviceProvider) GetRedisConfig() config.RedisConfig {
@@ -146,6 +177,42 @@ func (s *serviceProvider) GetTxManager(ctx context.Context) db.TxManager {
 	return s.txManager
 }
 
+func (s *serviceProvider) GetKafkaConfig() config.KafkaConfig {
+	if s.kafkaConfig == nil {
+		cfg, err := config.NewKafkaConfig()
+		if err != nil {
+			log.Fatalf("failed to get kafka config: %s", err)
+		}
+
+		s.kafkaConfig = cfg
+	}
+
+	return s.kafkaConfig
+}
+
+func (s *serviceProvider) GetKafkaProducer() *kafka.Writer {
+	if s.kafkaProducer == nil {
+		log.Println("--- Creating Kafka Producer for the first time ---")
+
+		cfg := s.GetKafkaConfig()
+		s.kafkaProducer = &kafka.Writer{
+			Addr:         kafka.TCP(cfg.Addresses()...),
+			Topic:        cfg.Theme(),
+			RequiredAcks: kafka.RequireAll,
+			MaxAttempts:  5,
+			Balancer:     &kafka.LeastBytes{},
+			Async:        false,
+		}
+
+		closer.Add(func() error {
+			log.Printf("kafka writer is closing")
+			return s.kafkaProducer.Close()
+		})
+	}
+
+	return s.kafkaProducer
+}
+
 func (s *serviceProvider) GetUserRepository(ctx context.Context) repoinf.UserRepository {
 	if s.userRepository == nil {
 		s.userRepository = repoAuth.NewRepository(s.GetDBClient(ctx))
@@ -177,6 +244,7 @@ func (s *serviceProvider) GetUserService(ctx context.Context) servinterface.User
 			s.GetUserRepository(ctx),
 			s.GetUserCache(ctx),
 			s.GetTxManager(ctx),
+			s.GetKafkaProducer(),
 		)
 	}
 

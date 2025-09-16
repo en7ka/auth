@@ -1,21 +1,40 @@
-FROM golang:1.24.5-alpine AS builder
+#FROM golang:1.24.5-alpine AS builder
+#
+#WORKDIR /app
+#
+#COPY go.mod go.sum ./
+#
+#RUN go mod download
+#
+#COPY cmd/ ./cmd/
+#COPY internal/ ./internal/
+#COPY pkg/ ./pkg/
+#
+#RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/user-server ./cmd/grpc_server
+#
+#FROM alpine:latest
+#RUN apk add --no-cache ca-certificates tzdata
+#WORKDIR /app
+#COPY --from=builder /out/user-server /usr/local/bin/user-server
+#
+#EXPOSE 8081 50051
+#ENTRYPOINT ["/usr/local/bin/user-server"]
+
+
+# build
+FROM golang:1.24.5-alpine3.22 AS builder
 
 WORKDIR /app
-
 COPY go.mod go.sum ./
-
 RUN go mod download
 
-COPY cmd/ ./cmd/
-COPY internal/ ./internal/
-COPY pkg/ ./pkg/
+COPY . .
+RUN go build -o user-server ./cmd/grpc_server/main.go
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/user-server ./cmd/grpc_server
-
+# runtime
 FROM alpine:latest
-RUN apk add --no-cache ca-certificates tzdata
-WORKDIR /app
-COPY --from=builder /out/user-server /usr/local/bin/user-server
 
-EXPOSE 8081 50051
-ENTRYPOINT ["/usr/local/bin/user-server"]
+WORKDIR /root/
+COPY --from=builder /app/user-server .
+
+CMD ["./user-server"]
